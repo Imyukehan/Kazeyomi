@@ -38,6 +38,7 @@ extension TachideskAPI {
       case "DownloadStatus": return TachideskAPI.Objects.DownloadStatus
       case "DownloadType": return TachideskAPI.Objects.DownloadType
       case "ExtensionNodeList": return TachideskAPI.Objects.ExtensionNodeList
+      case "FetchChapterPagesPayload": return TachideskAPI.Objects.FetchChapterPagesPayload
       case "GlobalMetaNodeList": return TachideskAPI.Objects.GlobalMetaNodeList
       case "LastUpdateTimestampPayload": return TachideskAPI.Objects.LastUpdateTimestampPayload
       case "MangaNodeList": return TachideskAPI.Objects.MangaNodeList

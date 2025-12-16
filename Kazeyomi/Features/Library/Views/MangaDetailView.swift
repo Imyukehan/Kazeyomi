@@ -90,34 +90,40 @@ struct MangaDetailView: View {
                             .foregroundStyle(.secondary)
                     } else {
                         ForEach(viewModel.chapters) { chapter in
-                            HStack(spacing: 12) {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(chapter.name)
-                                        .lineLimit(2)
+                            NavigationLink {
+                                ReaderView(
+                                    chapterID: chapter.id,
+                                    title: chapter.name
+                                )
+                            } label: {
+                                HStack(spacing: 12) {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(chapter.name)
+                                            .lineLimit(2)
 
-                                    HStack(spacing: 6) {
-                                        Text("#\(formatChapterNumber(chapter.chapterNumber))")
-                                        if let scanlator = chapter.scanlator, !scanlator.isEmpty {
-                                            Text("· \(scanlator)")
+                                        HStack(spacing: 6) {
+                                            Text("#\(formatChapterNumber(chapter.chapterNumber))")
+                                            if let scanlator = chapter.scanlator, !scanlator.isEmpty {
+                                                Text("· \(scanlator)")
+                                            }
                                         }
+                                        .font(.footnote)
+                                        .foregroundStyle(.secondary)
                                     }
-                                    .font(.footnote)
-                                    .foregroundStyle(.secondary)
-                                }
 
-                                Spacer()
+                                    Spacer()
 
-                                if chapter.isDownloaded {
-                                    Image(systemName: "arrow.down.circle")
-                                        .foregroundStyle(.secondary)
-                                }
+                                    if chapter.isDownloaded {
+                                        Image(systemName: "arrow.down.circle")
+                                            .foregroundStyle(.secondary)
+                                    }
 
-                                if chapter.isRead {
-                                    Image(systemName: "checkmark.circle")
-                                        .foregroundStyle(.secondary)
+                                    if chapter.isRead {
+                                        Image(systemName: "checkmark.circle")
+                                            .foregroundStyle(.secondary)
+                                    }
                                 }
                             }
-                            .contentShape(Rectangle())
                         }
                     }
                 }

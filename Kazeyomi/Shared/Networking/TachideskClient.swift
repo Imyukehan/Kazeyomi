@@ -252,4 +252,16 @@ final class TachideskClient {
 
         return (detail, chapters)
     }
+
+    func fetchChapterPages(chapterID: Int) async throws -> [String] {
+        let client = try makeApolloClient()
+        let result = try await client.performAsync(mutation: TachideskAPI.FetchChapterPagesMutation(chapterId: chapterID))
+        let data = try requireData(result)
+
+        guard let payload = data.fetchChapterPages else {
+            throw TachideskClientError.missingData
+        }
+
+        return payload.pages
+    }
 }

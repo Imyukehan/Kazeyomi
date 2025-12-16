@@ -1,0 +1,10 @@
+mutation FetchChapterPages($chapterId: Int!) {
+  fetchChapterPages(input: { chapterId: $chapterId }) {
+    pages
+    chapter {
+      id
+      name
+      mangaId
+    }
+  }
+}
