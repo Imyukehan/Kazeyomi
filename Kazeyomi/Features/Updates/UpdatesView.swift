@@ -57,8 +57,6 @@ struct UpdatesView: View {
 
     var body: some View {
         List {
-            ServerStatusSection()
-
             if viewModel.isLoading && viewModel.items.isEmpty {
                 Section {
                     ProgressView("加载中…")

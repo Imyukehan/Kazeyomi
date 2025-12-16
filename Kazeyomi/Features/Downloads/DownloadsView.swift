@@ -6,8 +6,6 @@ struct DownloadsView: View {
 
     var body: some View {
         List {
-            ServerStatusSection()
-
             Section("摘要") {
                 if viewModel.isLoading {
                     HStack {

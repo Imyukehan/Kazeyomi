@@ -3,8 +3,6 @@ import SwiftUI
 struct BrowseView: View {
     var body: some View {
         List {
-            ServerStatusSection()
-
             SourcesSection(title: "Sources")
 
             Section("浏览") {
