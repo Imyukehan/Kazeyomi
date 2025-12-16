@@ -1,0 +1,32 @@
+query MangaDetail($id: Int!, $chaptersFirst: Int!, $chaptersOffset: Int!) {
+  manga(id: $id) {
+    id
+    title
+    thumbnailUrl
+    author
+    artist
+    description
+    status
+    genre
+    unreadCount
+    inLibrary
+  }
+
+  chapters(
+    first: $chaptersFirst,
+    offset: $chaptersOffset,
+    condition: { mangaId: $id },
+    order: [{ by: SOURCE_ORDER, byType: DESC }]
+  ) {
+    nodes {
+      id
+      name
+      chapterNumber
+      scanlator
+      isRead
+      isDownloaded
+      uploadDate
+    }
+    totalCount
+  }
+}

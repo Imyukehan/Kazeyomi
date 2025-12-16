@@ -212,4 +212,44 @@ final class TachideskClient {
         let result = try await client.performAsync(mutation: TachideskAPI.RemoveFromHistoryMutation(chapterId: chapterID))
         _ = try requireData(result)
     }
+
+    func mangaDetail(id: Int, chaptersFirst: Int = 200, chaptersOffset: Int = 0) async throws -> (MangaDetail, [MangaChapter]) {
+        let client = try makeApolloClient()
+        let result = try await client.fetchAsync(
+            query: TachideskAPI.MangaDetailQuery(
+                id: id,
+                chaptersFirst: chaptersFirst,
+                chaptersOffset: chaptersOffset
+            )
+        )
+        let data = try requireData(result)
+
+        let manga = data.manga
+        let detail = MangaDetail(
+            id: manga.id,
+            title: manga.title,
+            thumbnailUrl: manga.thumbnailUrl,
+            author: manga.author,
+            artist: manga.artist,
+            description: manga.description,
+            status: rawValue(manga.status),
+            genres: manga.genre,
+            unreadCount: manga.unreadCount,
+            inLibrary: manga.inLibrary
+        )
+
+        let chapters = data.chapters.nodes.map { node in
+            MangaChapter(
+                id: node.id,
+                name: node.name,
+                chapterNumber: node.chapterNumber,
+                scanlator: node.scanlator,
+                isRead: node.isRead,
+                isDownloaded: node.isDownloaded,
+                uploadDate: node.uploadDate
+            )
+        }
+
+        return (detail, chapters)
+    }
 }

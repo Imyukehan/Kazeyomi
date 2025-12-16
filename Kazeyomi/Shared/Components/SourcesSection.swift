@@ -29,8 +29,8 @@ struct SourcesSection: View {
             } else {
                 ForEach(viewModel.sources) { source in
                     HStack(spacing: 12) {
-                        if let url = URL(string: source.iconUrl) {
-                            AsyncImage(url: url) { image in
+                        if let url = serverSettings.resolvedURL(source.iconUrl) {
+                            AuthorizedAsyncImage(url: url, authorization: serverSettings.authorizationHeaderValue) { image in
                                 image
                                     .resizable()
                                     .scaledToFit()

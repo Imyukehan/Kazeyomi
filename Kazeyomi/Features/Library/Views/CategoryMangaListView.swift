@@ -24,30 +24,34 @@ struct CategoryMangaListView: View {
                 }
             } else {
                 List(viewModel.mangas, id: \.id) { manga in
-                    HStack(spacing: 12) {
-                        if let urlString = manga.thumbnailUrl, let url = URL(string: urlString) {
-                            AsyncImage(url: url) { image in
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                            } placeholder: {
-                                ProgressView()
-                            }
-                            .frame(width: 44, height: 64)
-                            .clipped()
-                            .cornerRadius(6)
-                        } else {
-                            RoundedRectangle(cornerRadius: 6)
-                                .fill(.quaternary)
-                                .frame(width: 44, height: 64)
-                                .overlay {
-                                    Image(systemName: "book")
-                                        .foregroundStyle(.secondary)
+                    NavigationLink {
+                        MangaDetailView(mangaID: manga.id)
+                    } label: {
+                        HStack(spacing: 12) {
+                            if let url = serverSettings.resolvedURL(manga.thumbnailUrl) {
+                                AuthorizedAsyncImage(url: url, authorization: serverSettings.authorizationHeaderValue) { image in
+                                    image
+                                        .resizable()
+                                        .scaledToFill()
+                                } placeholder: {
+                                    ProgressView()
                                 }
-                        }
+                                .frame(width: 44, height: 64)
+                                .clipped()
+                                .cornerRadius(6)
+                            } else {
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(.quaternary)
+                                    .frame(width: 44, height: 64)
+                                    .overlay {
+                                        Image(systemName: "book")
+                                            .foregroundStyle(.secondary)
+                                    }
+                            }
 
-                        Text(manga.title)
-                            .lineLimit(2)
+                            Text(manga.title)
+                                .lineLimit(2)
+                        }
                     }
                 }
             }

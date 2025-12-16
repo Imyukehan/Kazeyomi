@@ -72,26 +72,33 @@ struct UpdatesView: View {
                 ForEach(groups) { group in
                     Section(group.title) {
                         ForEach(group.items) { item in
-                            HStack(spacing: 12) {
-                                AsyncImage(url: URL(string: item.manga.thumbnailUrl ?? "")) { image in
-                                    image
-                                        .resizable()
-                                        .scaledToFill()
-                                } placeholder: {
-                                    Color.secondary.opacity(0.15)
-                                }
-                                .frame(width: 44, height: 60)
-                                .clipShape(RoundedRectangle(cornerRadius: 6))
+                            NavigationLink {
+                                MangaDetailView(mangaID: item.mangaId)
+                            } label: {
+                                HStack(spacing: 12) {
+                                    AuthorizedAsyncImage(
+                                        url: serverSettings.resolvedURL(item.manga.thumbnailUrl),
+                                        authorization: serverSettings.authorizationHeaderValue
+                                    ) { image in
+                                        image
+                                            .resizable()
+                                            .scaledToFill()
+                                    } placeholder: {
+                                        Color.secondary.opacity(0.15)
+                                    }
+                                    .frame(width: 44, height: 60)
+                                    .clipShape(RoundedRectangle(cornerRadius: 6))
 
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(item.manga.title)
-                                        .font(.headline)
-                                        .lineLimit(1)
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(item.manga.title)
+                                            .font(.headline)
+                                            .lineLimit(1)
 
-                                    Text(item.name ?? "-")
-                                        .font(.subheadline)
-                                        .foregroundStyle(.secondary)
-                                        .lineLimit(2)
+                                        Text(item.name ?? "-")
+                                            .font(.subheadline)
+                                            .foregroundStyle(.secondary)
+                                            .lineLimit(2)
+                                    }
                                 }
                             }
                             .onAppear {
