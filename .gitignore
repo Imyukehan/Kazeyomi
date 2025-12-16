@@ -1,0 +1,28 @@
+# macOS
+.DS_Store
+
+# Xcode
+DerivedData/
+build/
+*.xcuserdatad/
+*.xccheckout
+*.xcscmblueprint
+*.moved-aside
+*.swp
+
+# Swift Package Manager
+.swiftpm/
+Packages/
+Package.resolved
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+# Crash logs
+*.crash
+
+# Temporary
+*.tmp
