@@ -2,6 +2,15 @@
 
 目标：渐进式开发、随时可运行；优先使用Apple官方/原生 API；按功能分模块，按层分目录，避免“所有代码堆在一个文件”。
 
+## 开发流程要求（你明确提出的偏好）
+
+- **不考虑老系统兼容**：以现代 SwiftUI + Observation 为主。
+- **优先官方/原生 API**：网络用 `URLSession`，先不引入重型第三方（例如 Apollo）直到必要。
+- **渐进式开发**：先有可运行的骨架（Tab/导航/占位），再逐步接入真实数据与交互。
+- **结构先行**：代码按 Feature-first + Shared 分层；新增功能先决定放在哪个目录。
+- **小步可回退**：频繁、小范围提交，保证每个阶段可编译可运行。
+- **不确定就对齐参考实现**：对于不确定的地方，参考 Sorayomi 的实现。
+
 ## 目录结构
 
 - `Kazeyomi/`（Xcode工程根目录）
@@ -44,6 +53,19 @@
   - App可编译、可启动
   - 关键路径（启动 → Tab切换）可验证
 - 新功能先做“可跑的骨架”，再填充数据层/API层。
+
+## 已完成（里程碑记录）
+
+- **工程骨架**：TabView + NavigationStack 基础结构已建立。
+- **项目规范**：已采用 Feature-first 目录结构并持续维护本 Rules。
+- **服务器设置**：支持 baseURL/端口/BasicAuth，并可持久化。
+- **连通性测试**：已实现 `aboutServer` 并可在 UI 验证。
+- **GraphQL 最小客户端**：URLSession POST JSON，解析 `data/errors`。
+- **Library 最小闭环**：分类列表 → 分类下漫画列表。
+- **Browse**：可展示 sources 列表。
+- **Downloads**：展示下载队列摘要。
+- **Updates（对齐 Sorayomi）**：最近章节列表 + 分页加载 + 按日期分组 + 下拉刷新。
+- **History（对齐 Sorayomi）**：阅读历史列表 + 搜索 + 按日期分组 + 移除条目（通过 `updateChapter` patch）。
 
 ## 技术栈选择（偏开发便利、官方优先）
 
