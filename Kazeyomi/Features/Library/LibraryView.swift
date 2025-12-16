@@ -44,13 +44,6 @@ struct LibraryView: View {
         .refreshable {
             await viewModel.load(serverSettings: serverSettings)
         }
-        .toolbar {
-            NavigationLink {
-                ServerSettingsView()
-            } label: {
-                Image(systemName: "gear")
-            }
-        }
     }
 }
 

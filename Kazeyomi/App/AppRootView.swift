@@ -37,6 +37,13 @@ struct AppRootView: View {
             .tabItem {
                 Label("下载", systemImage: "arrow.down.circle")
             }
+
+            NavigationStack {
+                ServerSettingsView()
+            }
+            .tabItem {
+                Label("设置", systemImage: "gearshape")
+            }
         }
     }
 }
