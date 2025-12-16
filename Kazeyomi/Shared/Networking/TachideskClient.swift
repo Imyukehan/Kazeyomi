@@ -11,6 +11,29 @@ struct AboutServerQueryData: Decodable {
     let aboutServer: AboutServerPayload
 }
 
+struct LastUpdateTimestampPayload: Decodable {
+    let timestamp: String
+}
+
+struct LastUpdateTimestampQueryData: Decodable {
+    let lastUpdateTimestamp: LastUpdateTimestampPayload
+}
+
+struct DownloadQueueItem: Decodable {
+    let state: String
+    let progress: Double
+    let position: Int
+}
+
+struct DownloadStatusPayload: Decodable {
+    let queue: [DownloadQueueItem]
+    let state: String
+}
+
+struct DownloadStatusQueryData: Decodable {
+    let downloadStatus: DownloadStatusPayload
+}
+
 final class TachideskClient {
     private let graphQL: GraphQLClient
     private let serverSettings: ServerSettingsStore
@@ -97,5 +120,42 @@ final class TachideskClient {
                         authorization: serverSettings.authorizationHeaderValue
                 )
                 return data.category.mangas.nodes
+        }
+
+        func lastUpdateTimestamp() async throws -> String {
+                let endpoint = try serverSettings.graphQLEndpointURL()
+                let data: LastUpdateTimestampQueryData = try await graphQL.execute(
+                        endpoint: endpoint,
+                        query: """
+                        query LastUpdateTimestamp {
+                            lastUpdateTimestamp {
+                                timestamp
+                            }
+                        }
+                        """,
+                        authorization: serverSettings.authorizationHeaderValue
+                )
+                return data.lastUpdateTimestamp.timestamp
+        }
+
+        func downloadStatus() async throws -> DownloadStatusPayload {
+                let endpoint = try serverSettings.graphQLEndpointURL()
+                let data: DownloadStatusQueryData = try await graphQL.execute(
+                        endpoint: endpoint,
+                        query: """
+                        query DownloadStatus {
+                            downloadStatus {
+                                state
+                                queue {
+                                    position
+                                    progress
+                                    state
+                                }
+                            }
+                        }
+                        """,
+                        authorization: serverSettings.authorizationHeaderValue
+                )
+                return data.downloadStatus
         }
 }

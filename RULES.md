@@ -20,6 +20,7 @@
       - `Components/`：可复用SwiftUI组件（小而清晰）
       - `Networking/`：网络层（URLSession、GraphQL封装、Endpoints等）
       - `Persistence/`：本地持久化（UserDefaults/SwiftData封装）
+      - `Utilities/`：小型工具与纯函数（无UI、无网络、无存储）
       - （后续可加：`Models/`、`Utilities/`）
 
 ## 文件放置规则
