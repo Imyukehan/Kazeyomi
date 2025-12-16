@@ -60,7 +60,7 @@
 - **项目规范**：已采用 Feature-first 目录结构并持续维护本 Rules。
 - **服务器设置**：支持 baseURL/端口/BasicAuth，并可持久化。
 - **连通性测试**：已实现 `aboutServer` 并可在 UI 验证。
-- **GraphQL 最小客户端**：作为过渡方案（URLSession POST JSON，解析 `data/errors`）；后续迁移到 Apollo iOS 统一管理。
+- **GraphQL（Apollo iOS + Codegen）**：GraphQL 已统一由 Apollo iOS 管理，并通过 codegen 生成类型安全的 Query/Mutation。
 - **Library 最小闭环**：分类列表 → 分类下漫画列表。
 - **Browse**：可展示 sources 列表。
 - **Downloads**：展示下载队列摘要。
@@ -79,3 +79,14 @@
 - 类型名用PascalCase，方法/变量用camelCase。
 - 文件名与主类型同名（例如 `LibraryView.swift` 内部主类型为 `LibraryView`）。
 - 视图尽量保持小（一个视图做一件事），复杂时拆分子View到同目录。
+
+## 提交规范（Conventional Commits）
+
+- 统一使用：`<type>(<scope>): <subject>`
+  - `type`：`feat` / `fix` / `docs` / `refactor` / `chore` / `test` / `build`
+  - `scope`：可选，优先用 Feature/层级，例如 `library`、`updates`、`history`、`networking`
+  - `subject`：简洁描述，建议用动词开头
+- 示例：
+  - `feat(library): add manga detail page`
+  - `fix(networking): resolve relative image URLs`
+  - `docs: add README`
