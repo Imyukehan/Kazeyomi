@@ -5,6 +5,8 @@ struct BrowseView: View {
         List {
             ServerStatusSection()
 
+            SourcesSection(title: "Sources")
+
             Section("浏览") {
                 Label("来源（Sources）", systemImage: "square.stack.3d.up")
                 Label("扩展（Extensions）", systemImage: "puzzlepiece.extension")

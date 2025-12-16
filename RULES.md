@@ -18,10 +18,12 @@
       - （后续新增：`Reader/`、`Migration/`、`Settings/` 等）
     - `Shared/`：跨模块复用
       - `Components/`：可复用SwiftUI组件（小而清晰）
+      - `Models/`：跨模块共享的数据模型（轻量、可复用）
+      - `ViewModels/`：跨模块共享的状态/加载器（避免各Tab重复写同样的拉取逻辑）
       - `Networking/`：网络层（URLSession、GraphQL封装、Endpoints等）
       - `Persistence/`：本地持久化（UserDefaults/SwiftData封装）
       - `Utilities/`：小型工具与纯函数（无UI、无网络、无存储）
-      - （后续可加：`Models/`、`Utilities/`）
+      - （后续可加：`Logger/`等）
 
 ## 文件放置规则
 

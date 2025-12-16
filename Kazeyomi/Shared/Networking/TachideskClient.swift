@@ -34,6 +34,14 @@ struct DownloadStatusQueryData: Decodable {
     let downloadStatus: DownloadStatusPayload
 }
 
+struct SourcesQueryData: Decodable {
+    struct SourcesPayload: Decodable {
+        let nodes: [Source]
+    }
+
+    let sources: SourcesPayload
+}
+
 final class TachideskClient {
     private let graphQL: GraphQLClient
     private let serverSettings: ServerSettingsStore
@@ -157,5 +165,29 @@ final class TachideskClient {
                         authorization: serverSettings.authorizationHeaderValue
                 )
                 return data.downloadStatus
+        }
+
+        func sources(first: Int = 500, offset: Int = 0) async throws -> [Source] {
+                let endpoint = try serverSettings.graphQLEndpointURL()
+                let data: SourcesQueryData = try await graphQL.execute(
+                        endpoint: endpoint,
+                        query: """
+                        query Sources {
+                            sources(first: \(first), offset: \(offset), orderBy: NAME, orderByType: ASC) {
+                                nodes {
+                                    id
+                                    name
+                                    displayName
+                                    lang
+                                    iconUrl
+                                    isNsfw
+                                    supportsLatest
+                                }
+                            }
+                        }
+                        """,
+                        authorization: serverSettings.authorizationHeaderValue
+                )
+                return data.sources.nodes
         }
 }
