@@ -1,336 +1,215 @@
+import Apollo
 import Foundation
 
-struct AboutServerPayload: Decodable {
+struct AboutServerPayload: Hashable {
     let name: String
     let version: String
     let revision: String
     let buildType: String
 }
 
-struct AboutServerQueryData: Decodable {
-    let aboutServer: AboutServerPayload
-}
-
-struct LastUpdateTimestampPayload: Decodable {
-    let timestamp: String
-}
-
-struct LastUpdateTimestampQueryData: Decodable {
-    let lastUpdateTimestamp: LastUpdateTimestampPayload
-}
-
-struct DownloadQueueItem: Decodable {
+struct DownloadQueueItem: Hashable {
     let state: String
     let progress: Double
     let position: Int
 }
 
-struct DownloadStatusPayload: Decodable {
+struct DownloadStatusPayload: Hashable {
     let queue: [DownloadQueueItem]
     let state: String
 }
 
-struct DownloadStatusQueryData: Decodable {
-    let downloadStatus: DownloadStatusPayload
-}
+enum TachideskClientError: LocalizedError {
+    case graphQLErrors([String])
+    case missingData
 
-struct SourcesQueryData: Decodable {
-    struct SourcesPayload: Decodable {
-        let nodes: [Source]
-    }
-
-    let sources: SourcesPayload
-}
-
-struct ChapterNodeListPayload<Node: Decodable>: Decodable {
-    let nodes: [Node]
-    let pageInfo: PageInfo
-    let totalCount: Int
-}
-
-struct RecentChaptersQueryData: Decodable {
-    let chapters: ChapterNodeListPayload<ChapterWithManga>
-}
-
-struct ReadingHistoryQueryData: Decodable {
-    let chapters: ChapterNodeListPayload<ChapterWithManga>
-}
-
-struct UpdateChapterMutationData: Decodable {
-    struct UpdateChapterPayload: Decodable {
-        struct ChapterPayload: Decodable {
-            let id: Int
+    var errorDescription: String? {
+        switch self {
+        case .graphQLErrors(let messages):
+            return messages.first
+        case .missingData:
+            return "GraphQL 响应缺少 data"
         }
-
-        let chapter: ChapterPayload
     }
-
-    let updateChapter: UpdateChapterPayload?
 }
 
 final class TachideskClient {
-    private let graphQL: GraphQLClient
     private let serverSettings: ServerSettingsStore
+    private let clientFactory: TachideskApolloClientFactory
 
-    init(graphQL: GraphQLClient = GraphQLClient(), serverSettings: ServerSettingsStore) {
-        self.graphQL = graphQL
+    init(
+        serverSettings: ServerSettingsStore,
+        clientFactory: TachideskApolloClientFactory = TachideskApolloClientFactory()
+    ) {
         self.serverSettings = serverSettings
+        self.clientFactory = clientFactory
+    }
+
+    private func makeApolloClient() throws -> ApolloClient {
+        let endpoint = try serverSettings.graphQLEndpointURL()
+        return clientFactory.makeClient(
+            endpointURL: endpoint,
+            authorization: serverSettings.authorizationHeaderValue
+        )
+    }
+
+    private func requireData<Data>(_ result: GraphQLResult<Data>) throws -> Data {
+        if let errors = result.errors, !errors.isEmpty {
+            let messages = errors
+                .compactMap { $0.message as String? }
+                .filter { !$0.isEmpty }
+
+            throw TachideskClientError.graphQLErrors(messages.isEmpty ? ["GraphQL 请求失败"] : messages)
+        }
+        guard let data = result.data else {
+            throw TachideskClientError.missingData
+        }
+        return data
+    }
+
+    private func rawValue<E: RawRepresentable>(_ value: GraphQLEnum<E>) -> String where E.RawValue == String {
+        // Apollo iOS uses `GraphQLEnum` to preserve unknown enum cases.
+        // Prefer raw string value to keep UI logic (e.g. "QUEUED") stable.
+        // Some Apollo versions expose `rawValue` as `String`, others as `String?`.
+        return (value.rawValue as String?) ?? "UNKNOWN"
     }
 
     func aboutServer() async throws -> AboutServerPayload {
-        let endpoint = try serverSettings.graphQLEndpointURL()
-        let data: AboutServerQueryData = try await graphQL.execute(
-            endpoint: endpoint,
-            query: """
-            query AboutServer {
-              aboutServer {
-                name
-                version
-                revision
-                buildType
-              }
-            }
-            """,
-            authorization: serverSettings.authorizationHeaderValue
+        let client = try makeApolloClient()
+        let result = try await client.fetchAsync(query: TachideskAPI.AboutServerQuery())
+        let data = try requireData(result)
+
+        let about = data.aboutServer
+        return AboutServerPayload(
+            name: about.name,
+            version: about.version,
+            revision: about.revision,
+            buildType: about.buildType
         )
-        return data.aboutServer
     }
 
-        func allCategories(first: Int = 200, offset: Int = 0) async throws -> [Category] {
-                struct CategoriesPayload: Decodable {
-                        let nodes: [Category]
-                }
-                struct CategoriesQueryData: Decodable {
-                        let categories: CategoriesPayload
-                }
+    func allCategories(first: Int = 200, offset: Int = 0) async throws -> [Category] {
+        let client = try makeApolloClient()
+        let result = try await client.fetchAsync(query: TachideskAPI.AllCategoriesQuery(first: first, offset: offset))
+        let data = try requireData(result)
 
-                let endpoint = try serverSettings.graphQLEndpointURL()
-                let data: CategoriesQueryData = try await graphQL.execute(
-                        endpoint: endpoint,
-                        query: """
-                        query AllCategories {
-                            categories(first: \(first), orderBy: ORDER, orderByType: ASC, offset: \(offset)) {
-                                nodes {
-                                    id
-                                    name
-                                    order
-                                    default
-                                }
-                            }
-                        }
-                        """,
-                        authorization: serverSettings.authorizationHeaderValue
+        return data.categories.nodes.map { node in
+            Category(id: node.id, name: node.name, order: node.order, isDefault: node.default)
+        }
+    }
+
+    func categoryMangas(categoryID: Int) async throws -> [Manga] {
+        let client = try makeApolloClient()
+        let result = try await client.fetchAsync(query: TachideskAPI.CategoryMangasQuery(categoryId: categoryID))
+        let data = try requireData(result)
+
+        return data.category.mangas.nodes.map { node in
+            Manga(id: node.id, title: node.title, thumbnailUrl: node.thumbnailUrl)
+        }
+    }
+
+    func lastUpdateTimestamp() async throws -> String {
+        let client = try makeApolloClient()
+        let result = try await client.fetchAsync(query: TachideskAPI.LastUpdateTimestampQuery())
+        let data = try requireData(result)
+        return data.lastUpdateTimestamp.timestamp
+    }
+
+    func downloadStatus() async throws -> DownloadStatusPayload {
+        let client = try makeApolloClient()
+        let result = try await client.fetchAsync(query: TachideskAPI.DownloadStatusQuery())
+        let data = try requireData(result)
+
+        let payload = data.downloadStatus
+        return DownloadStatusPayload(
+            queue: payload.queue.map { item in
+                DownloadQueueItem(
+                    state: rawValue(item.state),
+                    progress: item.progress,
+                    position: item.position
                 )
-                return data.categories.nodes
+            },
+            state: rawValue(payload.state)
+        )
+    }
+
+    func sources(first: Int = 500, offset: Int = 0) async throws -> [Source] {
+        let client = try makeApolloClient()
+        let result = try await client.fetchAsync(query: TachideskAPI.SourcesQuery(first: first, offset: offset))
+        let data = try requireData(result)
+
+        return data.sources.nodes.map { node in
+            Source(
+                id: node.id,
+                name: node.name,
+                displayName: node.displayName,
+                lang: node.lang,
+                iconUrl: node.iconUrl,
+                isNsfw: node.isNsfw,
+                supportsLatest: node.supportsLatest
+            )
         }
+    }
 
-        func categoryMangas(categoryID: Int) async throws -> [Manga] {
-                struct MangaPayload: Decodable {
-                        let nodes: [Manga]
-                }
-                struct CategoryPayload: Decodable {
-                        let mangas: MangaPayload
-                }
-                struct CategoryMangasQueryData: Decodable {
-                        let category: CategoryPayload
-                }
+    /// Sorayomi's "Updates" screen: fetch chapters ordered by fetchedAt desc.
+    func recentChaptersPage(pageNo: Int) async throws -> [ChapterWithManga] {
+        let client = try makeApolloClient()
+        let offset = pageNo * 30
 
-                let endpoint = try serverSettings.graphQLEndpointURL()
-                let data: CategoryMangasQueryData = try await graphQL.execute(
-                        endpoint: endpoint,
-                        query: """
-                        query GetCategoryMangas {
-                            category(id: \(categoryID)) {
-                                mangas {
-                                    nodes {
-                                        id
-                                        title
-                                        thumbnailUrl
-                                    }
-                                }
-                            }
-                        }
-                        """,
-                        authorization: serverSettings.authorizationHeaderValue
+        let result = try await client.fetchAsync(query: TachideskAPI.RecentChaptersPageQuery(first: 50, offset: offset))
+        let data = try requireData(result)
+
+        return data.chapters.nodes.map { node in
+            ChapterWithManga(
+                id: node.id,
+                name: node.name,
+                mangaId: node.mangaId,
+                fetchedAt: node.fetchedAt,
+                lastReadAt: nil,
+                isRead: node.isRead,
+                lastPageRead: node.lastPageRead,
+                isDownloaded: node.isDownloaded,
+                scanlator: node.scanlator,
+                manga: MangaBase(
+                    id: node.manga.id,
+                    title: node.manga.title,
+                    thumbnailUrl: node.manga.thumbnailUrl,
+                    unreadCount: node.manga.unreadCount
                 )
-                return data.category.mangas.nodes
+            )
         }
+    }
 
-        func lastUpdateTimestamp() async throws -> String {
-                let endpoint = try serverSettings.graphQLEndpointURL()
-                let data: LastUpdateTimestampQueryData = try await graphQL.execute(
-                        endpoint: endpoint,
-                        query: """
-                        query LastUpdateTimestamp {
-                            lastUpdateTimestamp {
-                                timestamp
-                            }
-                        }
-                        """,
-                        authorization: serverSettings.authorizationHeaderValue
+    /// Sorayomi's "History" screen: chapters with reading progress, ordered by lastReadAt desc.
+    func readingHistory(pageSize: Int, offset: Int) async throws -> [ChapterWithManga] {
+        let client = try makeApolloClient()
+        let result = try await client.fetchAsync(query: TachideskAPI.ReadingHistoryQuery(first: pageSize, offset: offset))
+        let data = try requireData(result)
+
+        return data.chapters.nodes.map { node in
+            ChapterWithManga(
+                id: node.id,
+                name: node.name,
+                mangaId: node.mangaId,
+                fetchedAt: nil,
+                lastReadAt: node.lastReadAt,
+                isRead: node.isRead,
+                lastPageRead: node.lastPageRead,
+                isDownloaded: node.isDownloaded,
+                scanlator: node.scanlator,
+                manga: MangaBase(
+                    id: node.manga.id,
+                    title: node.manga.title,
+                    thumbnailUrl: node.manga.thumbnailUrl,
+                    unreadCount: node.manga.unreadCount
                 )
-                return data.lastUpdateTimestamp.timestamp
+            )
         }
+    }
 
-        func downloadStatus() async throws -> DownloadStatusPayload {
-                let endpoint = try serverSettings.graphQLEndpointURL()
-                let data: DownloadStatusQueryData = try await graphQL.execute(
-                        endpoint: endpoint,
-                        query: """
-                        query DownloadStatus {
-                            downloadStatus {
-                                state
-                                queue {
-                                    position
-                                    progress
-                                    state
-                                }
-                            }
-                        }
-                        """,
-                        authorization: serverSettings.authorizationHeaderValue
-                )
-                return data.downloadStatus
-        }
-
-        func sources(first: Int = 500, offset: Int = 0) async throws -> [Source] {
-                let endpoint = try serverSettings.graphQLEndpointURL()
-                let data: SourcesQueryData = try await graphQL.execute(
-                        endpoint: endpoint,
-                        query: """
-                        query Sources {
-                            sources(first: \(first), offset: \(offset), orderBy: NAME, orderByType: ASC) {
-                                nodes {
-                                    id
-                                    name
-                                    displayName
-                                    lang
-                                    iconUrl
-                                    isNsfw
-                                    supportsLatest
-                                }
-                            }
-                        }
-                        """,
-                        authorization: serverSettings.authorizationHeaderValue
-                )
-                return data.sources.nodes
-        }
-
-        /// Sorayomi's "Updates" screen: fetch chapters ordered by fetchedAt desc.
-        func recentChaptersPage(pageNo: Int) async throws -> [ChapterWithManga] {
-                let endpoint = try serverSettings.graphQLEndpointURL()
-                let offset = pageNo * 30
-                let data: RecentChaptersQueryData = try await graphQL.execute(
-                        endpoint: endpoint,
-                        query: """
-                        query GetChapterWithMangaPage {
-                            chapters(
-                                first: 50,
-                                offset: \(offset),
-                                filter: { inLibrary: { equalTo: true } },
-                                order: [
-                                    { by: FETCHED_AT, byType: DESC },
-                                    { by: SOURCE_ORDER, byType: DESC }
-                                ]
-                            ) {
-                                nodes {
-                                    id
-                                    name
-                                    mangaId
-                                    fetchedAt
-                                    isRead
-                                    lastPageRead
-                                    isDownloaded
-                                    scanlator
-                                    manga {
-                                        id
-                                        title
-                                        thumbnailUrl
-                                        unreadCount
-                                    }
-                                }
-                                pageInfo {
-                                    hasNextPage
-                                    hasPreviousPage
-                                    startCursor
-                                    endCursor
-                                }
-                                totalCount
-                            }
-                        }
-                        """,
-                        authorization: serverSettings.authorizationHeaderValue
-                )
-                return data.chapters.nodes
-        }
-
-        /// Sorayomi's "History" screen: chapters with reading progress, ordered by lastReadAt desc.
-        func readingHistory(pageSize: Int, offset: Int) async throws -> [ChapterWithManga] {
-                let endpoint = try serverSettings.graphQLEndpointURL()
-                let data: ReadingHistoryQueryData = try await graphQL.execute(
-                        endpoint: endpoint,
-                        query: """
-                        query GetReadingHistory {
-                            chapters(
-                                first: \(pageSize),
-                                offset: \(offset),
-                                filter: {
-                                    inLibrary: { equalTo: true },
-                                    lastReadAt: { isNull: false, greaterThan: "0" },
-                                    or: [
-                                        { isRead: { equalTo: true } },
-                                        { lastPageRead: { greaterThan: 0 } }
-                                    ]
-                                },
-                                order: [
-                                    { by: LAST_READ_AT, byType: DESC },
-                                    { by: SOURCE_ORDER, byType: DESC }
-                                ]
-                            ) {
-                                nodes {
-                                    id
-                                    name
-                                    mangaId
-                                    lastReadAt
-                                    isRead
-                                    lastPageRead
-                                    isDownloaded
-                                    scanlator
-                                    manga {
-                                        id
-                                        title
-                                        thumbnailUrl
-                                        unreadCount
-                                    }
-                                }
-                                pageInfo {
-                                    hasNextPage
-                                    hasPreviousPage
-                                    startCursor
-                                    endCursor
-                                }
-                                totalCount
-                            }
-                        }
-                        """,
-                        authorization: serverSettings.authorizationHeaderValue
-                )
-                return data.chapters.nodes
-        }
-
-        func removeChapterFromHistory(chapterID: Int) async throws {
-                let endpoint = try serverSettings.graphQLEndpointURL()
-                _ = try await graphQL.execute(
-                        endpoint: endpoint,
-                        query: """
-                        mutation RemoveFromHistory {
-                            updateChapter(input: { id: \(chapterID), patch: { isRead: false, lastPageRead: 0 } }) {
-                                chapter { id }
-                            }
-                        }
-                        """,
-                        authorization: serverSettings.authorizationHeaderValue
-                ) as UpdateChapterMutationData
-        }
+    func removeChapterFromHistory(chapterID: Int) async throws {
+        let client = try makeApolloClient()
+        let result = try await client.performAsync(mutation: TachideskAPI.RemoveFromHistoryMutation(chapterId: chapterID))
+        _ = try requireData(result)
+    }
 }

@@ -1,0 +1,29 @@
+{
+  "schemaNamespace" : "TachideskAPI",
+  "input" : {
+    "operationSearchPaths" : [
+      "./Kazeyomi/Shared/GraphQL/Operations/**/*.graphql"
+    ],
+    "schemaSearchPaths" : [
+      "./Kazeyomi/Shared/GraphQL/Schema/**/*.graphqls"
+    ]
+  },
+  "output" : {
+    "testMocks" : {
+      "none" : {
+      }
+    },
+    "schemaTypes" : {
+      "path" : "./Kazeyomi/Shared/GraphQL/Generated",
+      "moduleType" : {
+        "embeddedInTarget" : {
+          "name" : "Kazeyomi"
+        }
+      }
+    },
+    "operations" : {
+      "inSchemaModule" : {
+      }
+    }
+  }
+}

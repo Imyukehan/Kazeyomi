@@ -1,0 +1,10 @@
+query DownloadStatus {
+  downloadStatus {
+    state
+    queue {
+      position
+      progress
+      state
+    }
+  }
+}

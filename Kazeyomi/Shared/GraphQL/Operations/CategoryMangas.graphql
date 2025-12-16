@@ -1,0 +1,11 @@
+query CategoryMangas($categoryId: Int!) {
+  category(id: $categoryId) {
+    mangas {
+      nodes {
+        id
+        title
+        thumbnailUrl
+      }
+    }
+  }
+}

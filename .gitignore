@@ -15,6 +15,11 @@ build/
 Packages/
 Package.resolved
 
+# Local codegen workspace (commit sources, ignore build artifacts)
+GraphQLCodegen/.build/
+GraphQLCodegen/.local-cli/
+GraphQLCodegen/apollo-ios-cli
+
 # fastlane
 fastlane/report.xml
 fastlane/Preview.html

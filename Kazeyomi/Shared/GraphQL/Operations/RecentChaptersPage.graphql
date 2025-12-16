@@ -1,0 +1,32 @@
+query RecentChaptersPage($first: Int!, $offset: Int!) {
+  chapters(
+    first: $first
+    offset: $offset
+    filter: { inLibrary: { equalTo: true } }
+    order: [{ by: FETCHED_AT, byType: DESC }, { by: SOURCE_ORDER, byType: DESC }]
+  ) {
+    nodes {
+      id
+      name
+      mangaId
+      fetchedAt
+      isRead
+      lastPageRead
+      isDownloaded
+      scanlator
+      manga {
+        id
+        title
+        thumbnailUrl
+        unreadCount
+      }
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+    totalCount
+  }
+}

@@ -1,0 +1,7 @@
+mutation RemoveFromHistory($chapterId: Int!) {
+  updateChapter(input: { id: $chapterId, patch: { isRead: false, lastPageRead: 0 } }) {
+    chapter {
+      id
+    }
+  }
+}

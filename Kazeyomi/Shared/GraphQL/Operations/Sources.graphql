@@ -1,0 +1,13 @@
+query Sources($first: Int!, $offset: Int!) {
+  sources(first: $first, offset: $offset, orderBy: NAME, orderByType: ASC) {
+    nodes {
+      id
+      name
+      displayName
+      lang
+      iconUrl
+      isNsfw
+      supportsLatest
+    }
+  }
+}

@@ -1,0 +1,36 @@
+query ReadingHistory($first: Int!, $offset: Int!) {
+  chapters(
+    first: $first
+    offset: $offset
+    filter: {
+      inLibrary: { equalTo: true }
+      lastReadAt: { isNull: false, greaterThan: "0" }
+      or: [{ isRead: { equalTo: true } }, { lastPageRead: { greaterThan: 0 } }]
+    }
+    order: [{ by: LAST_READ_AT, byType: DESC }, { by: SOURCE_ORDER, byType: DESC }]
+  ) {
+    nodes {
+      id
+      name
+      mangaId
+      lastReadAt
+      isRead
+      lastPageRead
+      isDownloaded
+      scanlator
+      manga {
+        id
+        title
+        thumbnailUrl
+        unreadCount
+      }
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+    totalCount
+  }
+}

@@ -5,7 +5,7 @@
 ## 开发流程要求（你明确提出的偏好）
 
 - **不考虑老系统兼容**：以现代 SwiftUI + Observation 为主。
-- **优先官方/原生 API**：网络用 `URLSession`，先不引入重型第三方（例如 Apollo）直到必要。
+- **优先官方/原生 API**：非 GraphQL 的网络请求用 `URLSession`；GraphQL 由 Apollo iOS 统一管理（类型安全/缓存/代码生成），避免在 View 层直接写请求。
 - **渐进式开发**：先有可运行的骨架（Tab/导航/占位），再逐步接入真实数据与交互。
 - **结构先行**：代码按 Feature-first + Shared 分层；新增功能先决定放在哪个目录。
 - **小步可回退**：频繁、小范围提交，保证每个阶段可编译可运行。
@@ -60,7 +60,7 @@
 - **项目规范**：已采用 Feature-first 目录结构并持续维护本 Rules。
 - **服务器设置**：支持 baseURL/端口/BasicAuth，并可持久化。
 - **连通性测试**：已实现 `aboutServer` 并可在 UI 验证。
-- **GraphQL 最小客户端**：URLSession POST JSON，解析 `data/errors`。
+- **GraphQL 最小客户端**：作为过渡方案（URLSession POST JSON，解析 `data/errors`）；后续迁移到 Apollo iOS 统一管理。
 - **Library 最小闭环**：分类列表 → 分类下漫画列表。
 - **Browse**：可展示 sources 列表。
 - **Downloads**：展示下载队列摘要。
@@ -71,7 +71,7 @@
 
 - UI：SwiftUI
 - 状态：优先用SwiftUI/Observation（按项目最低系统版本选择），避免过早引入大型第三方架构
-- 网络：优先 `URLSession`；如后续确认Tachidesk GraphQL契约稳定，可再评估Apollo iOS（这一步放到数据层阶段）
+- 网络：GraphQL 使用 Apollo iOS 统一管理（Schema/代码生成/类型安全/缓存）；非 GraphQL 请求继续使用 `URLSession`；所有网络访问统一封装在 `Shared/Networking/`，禁止在 View 直接发请求。
 - 存储：优先 `UserDefaults`（设置） + `SwiftData`（结构化数据）
 
 ## 命名与代码风格

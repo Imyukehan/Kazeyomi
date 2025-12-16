@@ -1,0 +1,10 @@
+query AllCategories($first: Int!, $offset: Int!) {
+  categories(first: $first, orderBy: ORDER, orderByType: ASC, offset: $offset) {
+    nodes {
+      id
+      name
+      order
+      default
+    }
+  }
+}
