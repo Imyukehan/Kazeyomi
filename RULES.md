@@ -25,6 +25,10 @@
 ## 文件放置规则
 
 - **UI View（SwiftUI View）**：放在对应 `Features/<FeatureName>/` 下，例如 `Features/Library/LibraryView.swift`。
+- 当某个Feature开始变复杂时，允许在其目录下进一步分层：
+  - `Features/<FeatureName>/Views/`：页面与子视图
+  - `Features/<FeatureName>/ViewModels/`：页面状态与业务编排（尽量薄）
+  - `Features/<FeatureName>/Models/`：该Feature专属的轻量模型（DTO/展示模型）
 - **可复用组件**：放在 `Shared/Components/`，例如 `Shared/Components/PlaceholderView.swift`。
 - **应用装配与全局入口**：只放在 `App/`。
 - **网络层**：放在 `Shared/Networking/`，不要在View里直接拼URL或写请求。

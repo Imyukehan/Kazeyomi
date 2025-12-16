@@ -38,4 +38,64 @@ final class TachideskClient {
         )
         return data.aboutServer
     }
+
+        func allCategories(first: Int = 200, offset: Int = 0) async throws -> [Category] {
+                struct CategoriesPayload: Decodable {
+                        let nodes: [Category]
+                }
+                struct CategoriesQueryData: Decodable {
+                        let categories: CategoriesPayload
+                }
+
+                let endpoint = try serverSettings.graphQLEndpointURL()
+                let data: CategoriesQueryData = try await graphQL.execute(
+                        endpoint: endpoint,
+                        query: """
+                        query AllCategories {
+                            categories(first: \(first), orderBy: ORDER, orderByType: ASC, offset: \(offset)) {
+                                nodes {
+                                    id
+                                    name
+                                    order
+                                    default
+                                }
+                            }
+                        }
+                        """,
+                        authorization: serverSettings.authorizationHeaderValue
+                )
+                return data.categories.nodes
+        }
+
+        func categoryMangas(categoryID: Int) async throws -> [Manga] {
+                struct MangaPayload: Decodable {
+                        let nodes: [Manga]
+                }
+                struct CategoryPayload: Decodable {
+                        let mangas: MangaPayload
+                }
+                struct CategoryMangasQueryData: Decodable {
+                        let category: CategoryPayload
+                }
+
+                let endpoint = try serverSettings.graphQLEndpointURL()
+                let data: CategoryMangasQueryData = try await graphQL.execute(
+                        endpoint: endpoint,
+                        query: """
+                        query GetCategoryMangas {
+                            category(id: \(categoryID)) {
+                                mangas {
+                                    nodes {
+                                        id
+                                        title
+                                        thumbnailUrl
+                                    }
+                                }
+                            }
+                        }
+                        """,
+                        authorization: serverSettings.authorizationHeaderValue
+                )
+                return data.category.mangas.nodes
+        }
 }
