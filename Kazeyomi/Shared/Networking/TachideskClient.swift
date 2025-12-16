@@ -42,6 +42,32 @@ struct SourcesQueryData: Decodable {
     let sources: SourcesPayload
 }
 
+struct ChapterNodeListPayload<Node: Decodable>: Decodable {
+    let nodes: [Node]
+    let pageInfo: PageInfo
+    let totalCount: Int
+}
+
+struct RecentChaptersQueryData: Decodable {
+    let chapters: ChapterNodeListPayload<ChapterWithManga>
+}
+
+struct ReadingHistoryQueryData: Decodable {
+    let chapters: ChapterNodeListPayload<ChapterWithManga>
+}
+
+struct UpdateChapterMutationData: Decodable {
+    struct UpdateChapterPayload: Decodable {
+        struct ChapterPayload: Decodable {
+            let id: Int
+        }
+
+        let chapter: ChapterPayload
+    }
+
+    let updateChapter: UpdateChapterPayload?
+}
+
 final class TachideskClient {
     private let graphQL: GraphQLClient
     private let serverSettings: ServerSettingsStore
@@ -189,5 +215,122 @@ final class TachideskClient {
                         authorization: serverSettings.authorizationHeaderValue
                 )
                 return data.sources.nodes
+        }
+
+        /// Sorayomi's "Updates" screen: fetch chapters ordered by fetchedAt desc.
+        func recentChaptersPage(pageNo: Int) async throws -> [ChapterWithManga] {
+                let endpoint = try serverSettings.graphQLEndpointURL()
+                let offset = pageNo * 30
+                let data: RecentChaptersQueryData = try await graphQL.execute(
+                        endpoint: endpoint,
+                        query: """
+                        query GetChapterWithMangaPage {
+                            chapters(
+                                first: 50,
+                                offset: \(offset),
+                                filter: { inLibrary: { equalTo: true } },
+                                order: [
+                                    { by: FETCHED_AT, byType: DESC },
+                                    { by: SOURCE_ORDER, byType: DESC }
+                                ]
+                            ) {
+                                nodes {
+                                    id
+                                    name
+                                    mangaId
+                                    fetchedAt
+                                    isRead
+                                    lastPageRead
+                                    isDownloaded
+                                    scanlator
+                                    manga {
+                                        id
+                                        title
+                                        thumbnailUrl
+                                        unreadCount
+                                    }
+                                }
+                                pageInfo {
+                                    hasNextPage
+                                    hasPreviousPage
+                                    startCursor
+                                    endCursor
+                                }
+                                totalCount
+                            }
+                        }
+                        """,
+                        authorization: serverSettings.authorizationHeaderValue
+                )
+                return data.chapters.nodes
+        }
+
+        /// Sorayomi's "History" screen: chapters with reading progress, ordered by lastReadAt desc.
+        func readingHistory(pageSize: Int, offset: Int) async throws -> [ChapterWithManga] {
+                let endpoint = try serverSettings.graphQLEndpointURL()
+                let data: ReadingHistoryQueryData = try await graphQL.execute(
+                        endpoint: endpoint,
+                        query: """
+                        query GetReadingHistory {
+                            chapters(
+                                first: \(pageSize),
+                                offset: \(offset),
+                                filter: {
+                                    inLibrary: { equalTo: true },
+                                    lastReadAt: { isNull: false, greaterThan: "0" },
+                                    or: [
+                                        { isRead: { equalTo: true } },
+                                        { lastPageRead: { greaterThan: 0 } }
+                                    ]
+                                },
+                                order: [
+                                    { by: LAST_READ_AT, byType: DESC },
+                                    { by: SOURCE_ORDER, byType: DESC }
+                                ]
+                            ) {
+                                nodes {
+                                    id
+                                    name
+                                    mangaId
+                                    lastReadAt
+                                    isRead
+                                    lastPageRead
+                                    isDownloaded
+                                    scanlator
+                                    manga {
+                                        id
+                                        title
+                                        thumbnailUrl
+                                        unreadCount
+                                    }
+                                }
+                                pageInfo {
+                                    hasNextPage
+                                    hasPreviousPage
+                                    startCursor
+                                    endCursor
+                                }
+                                totalCount
+                            }
+                        }
+                        """,
+                        authorization: serverSettings.authorizationHeaderValue
+                )
+                return data.chapters.nodes
+        }
+
+        func removeChapterFromHistory(chapterID: Int) async throws {
+                let endpoint = try serverSettings.graphQLEndpointURL()
+                _ = try await graphQL.execute(
+                        endpoint: endpoint,
+                        query: """
+                        mutation RemoveFromHistory {
+                            updateChapter(input: { id: \(chapterID), patch: { isRead: false, lastPageRead: 0 } }) {
+                                chapter { id }
+                            }
+                        }
+                        """,
+                        authorization: serverSettings.authorizationHeaderValue
+                ) as UpdateChapterMutationData
         }
 }

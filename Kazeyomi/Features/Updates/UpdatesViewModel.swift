@@ -6,10 +6,21 @@ import Observation
 final class UpdatesViewModel {
     private(set) var isLoading = false
     private(set) var errorMessage: String?
-    private(set) var lastUpdateTimestamp: String?
+    private(set) var items: [ChapterWithManga] = []
+    private(set) var canLoadMore = true
 
-    func load(serverSettings: ServerSettingsStore) async {
+    private var pageNo: Int = 0
+
+    func refresh(serverSettings: ServerSettingsStore) async {
+        pageNo = 0
+        items = []
+        canLoadMore = true
+        await loadMore(serverSettings: serverSettings)
+    }
+
+    func loadMore(serverSettings: ServerSettingsStore) async {
         guard !isLoading else { return }
+        guard canLoadMore else { return }
 
         isLoading = true
         errorMessage = nil
@@ -17,9 +28,18 @@ final class UpdatesViewModel {
 
         do {
             let client = TachideskClient(serverSettings: serverSettings)
-            lastUpdateTimestamp = try await client.lastUpdateTimestamp()
+            let page = try await client.recentChaptersPage(pageNo: pageNo)
+
+            if page.isEmpty {
+                canLoadMore = false
+                return
+            }
+
+            items.append(contentsOf: page)
+            pageNo += 1
+            // Conservative: stop when fewer than 30 returned (Sorayomi offset stride)
+            canLoadMore = page.count >= 30
         } catch {
-            lastUpdateTimestamp = nil
             errorMessage = error.localizedDescription
         }
     }

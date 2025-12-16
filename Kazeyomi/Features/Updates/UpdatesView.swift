@@ -4,49 +4,124 @@ struct UpdatesView: View {
     @Environment(ServerSettingsStore.self) private var serverSettings
     @State private var viewModel = UpdatesViewModel()
 
+    private struct SectionGroup: Identifiable {
+        let id: String
+        let title: String
+        let sortDate: Date?
+        let items: [ChapterWithManga]
+    }
+
+    private var groups: [SectionGroup] {
+        let calendar = Calendar.current
+        var buckets: [Date: [ChapterWithManga]] = [:]
+        var unknown: [ChapterWithManga] = []
+
+        for item in viewModel.items {
+            guard let fetchedAt = item.fetchedAt,
+                  let date = Timestamps.date(fromLongString: fetchedAt)
+            else {
+                unknown.append(item)
+                continue
+            }
+
+            let day = calendar.startOfDay(for: date)
+            buckets[day, default: []].append(item)
+        }
+
+        var result: [SectionGroup] = buckets
+            .map { day, items in
+                SectionGroup(
+                    id: ISO8601DateFormatter().string(from: day),
+                    title: Timestamps.relativeDayTitle(from: day),
+                    sortDate: day,
+                    items: items
+                )
+            }
+            .sorted { (lhs, rhs) in
+                (lhs.sortDate ?? .distantPast) > (rhs.sortDate ?? .distantPast)
+            }
+
+        if !unknown.isEmpty {
+            result.append(
+                SectionGroup(
+                    id: "unknown",
+                    title: "未知日期",
+                    sortDate: nil,
+                    items: unknown
+                )
+            )
+        }
+
+        return result
+    }
+
     var body: some View {
         List {
             ServerStatusSection()
 
-            Section("摘要") {
-                if viewModel.isLoading {
-                    HStack {
-                        Text("加载中")
-                        Spacer()
-                        ProgressView()
-                    }
-                } else if let errorMessage = viewModel.errorMessage {
-                    Text("加载失败：\(errorMessage)")
-                        .font(.footnote)
+            if viewModel.isLoading && viewModel.items.isEmpty {
+                Section {
+                    ProgressView("加载中…")
+                }
+            } else if viewModel.items.isEmpty {
+                Section {
+                    Text("暂无更新")
                         .foregroundStyle(.secondary)
-                } else {
-                    LabeledContent("最后更新时间") {
-                        Text(viewModel.lastUpdateTimestamp ?? "-")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
+                }
+            } else {
+                ForEach(groups) { group in
+                    Section(group.title) {
+                        ForEach(group.items) { item in
+                            HStack(spacing: 12) {
+                                AsyncImage(url: URL(string: item.manga.thumbnailUrl ?? "")) { image in
+                                    image
+                                        .resizable()
+                                        .scaledToFill()
+                                } placeholder: {
+                                    Color.secondary.opacity(0.15)
+                                }
+                                .frame(width: 44, height: 60)
+                                .clipShape(RoundedRectangle(cornerRadius: 6))
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(item.manga.title)
+                                        .font(.headline)
+                                        .lineLimit(1)
+
+                                    Text(item.name ?? "-")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(2)
+                                }
+                            }
+                            .onAppear {
+                                guard item.id == viewModel.items.last?.id else { return }
+                                guard viewModel.canLoadMore, !viewModel.isLoading else { return }
+                                Task { await viewModel.loadMore(serverSettings: serverSettings) }
+                            }
+                        }
+
+                        if viewModel.isLoading && !viewModel.items.isEmpty {
+                            ProgressView("加载更多…")
+                        }
                     }
                 }
             }
-
-            Section {
-                Text("后续：最近章节列表、更新任务状态订阅、批量操作。")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
         }
         .navigationTitle("更新")
-        .task(id: TaskKey.serverSettings(
-            baseURLString: serverSettings.baseURLString,
-            addPort: serverSettings.addPort,
-            port: serverSettings.port,
-            useBasicAuth: serverSettings.useBasicAuth,
-            username: serverSettings.username,
-            password: serverSettings.password
-        )) {
-            await viewModel.load(serverSettings: serverSettings)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("刷新") {
+                    Task { await viewModel.refresh(serverSettings: serverSettings) }
+                }
+                .disabled(viewModel.isLoading)
+            }
         }
         .refreshable {
-            await viewModel.load(serverSettings: serverSettings)
+            await viewModel.refresh(serverSettings: serverSettings)
+        }
+        .task(id: TaskKey.forServerSettings(serverSettings)) {
+            await viewModel.refresh(serverSettings: serverSettings)
         }
     }
 }
@@ -55,4 +130,5 @@ struct UpdatesView: View {
     NavigationStack {
         UpdatesView()
     }
+    .environment(ServerSettingsStore())
 }
