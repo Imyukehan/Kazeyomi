@@ -28,8 +28,6 @@ struct UpdatesView: View {
                 }
             }
 
-            SourcesSection(title: "Sources")
-
             Section {
                 Text("后续：最近章节列表、更新任务状态订阅、批量操作。")
                     .font(.footnote)

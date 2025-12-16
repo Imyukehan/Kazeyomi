@@ -5,8 +5,6 @@ struct HistoryView: View {
         List {
             ServerStatusSection()
 
-            SourcesSection(title: "Sources")
-
             Section("历史") {
                 Label("按日期分组", systemImage: "calendar")
                 Label("继续阅读入口", systemImage: "play.circle")
