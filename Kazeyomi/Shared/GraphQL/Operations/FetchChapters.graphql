@@ -1,0 +1,7 @@
+mutation FetchChapters($mangaId: Int!) {
+  fetchChapters(input: { mangaId: $mangaId }) {
+    chapters {
+      id
+    }
+  }
+}

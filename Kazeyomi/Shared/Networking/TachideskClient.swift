@@ -19,6 +19,11 @@ struct DownloadStatusPayload: Hashable {
     let state: String
 }
 
+struct SourceMangaPage: Hashable {
+    let hasNextPage: Bool
+    let mangas: [Manga]
+}
+
 enum TachideskClientError: LocalizedError {
     case graphQLErrors([String])
     case missingData
@@ -162,6 +167,42 @@ final class TachideskClient {
         }
     }
 
+    func fetchSourceManga(
+        sourceID: String,
+        type: TachideskAPI.FetchSourceMangaType,
+        page: Int,
+        query: String?
+    ) async throws -> SourceMangaPage {
+        let client = try makeApolloClient()
+        let input = TachideskAPI.FetchSourceMangaInput(
+            filters: nil,
+            page: page,
+            query: query.map { .some($0) } ?? nil,
+            source: sourceID,
+            type: .init(type)
+        )
+
+        let result = try await client.performAsync(
+            mutation: TachideskAPI.FetchSourceMangaMutation(input: input)
+        )
+        let data = try requireData(result)
+
+        guard let payload = data.fetchSourceManga else {
+            throw TachideskClientError.missingData
+        }
+        let mangas = payload.mangas.map { node in
+            Manga(
+                id: node.id,
+                title: node.title,
+                thumbnailUrl: node.thumbnailUrl,
+                inLibrary: node.inLibrary,
+                sourceId: node.sourceId
+            )
+        }
+
+        return SourceMangaPage(hasNextPage: payload.hasNextPage, mangas: mangas)
+    }
+
     /// Sorayomi's "Updates" screen: fetch chapters ordered by fetchedAt desc.
     func recentChaptersPage(pageNo: Int) async throws -> [ChapterWithManga] {
         let client = try makeApolloClient()
@@ -262,6 +303,16 @@ final class TachideskClient {
         }
 
         return (detail, chapters)
+    }
+
+    func fetchChapters(mangaID: Int) async throws {
+        let client = try makeApolloClient()
+        let result = try await client.performAsync(mutation: TachideskAPI.FetchChaptersMutation(mangaId: mangaID))
+        let data = try requireData(result)
+
+        guard data.fetchChapters != nil else {
+            throw TachideskClientError.missingData
+        }
     }
 
     func fetchChapterPages(chapterID: Int) async throws -> [String] {

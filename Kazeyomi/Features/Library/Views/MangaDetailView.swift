@@ -135,7 +135,7 @@ struct MangaDetailView: View {
             await viewModel.load(serverSettings: serverSettings, mangaID: mangaID)
         }
         .refreshable {
-            await viewModel.load(serverSettings: serverSettings, mangaID: mangaID)
+            await viewModel.load(serverSettings: serverSettings, mangaID: mangaID, forceFetchChapters: true)
         }
     }
 
