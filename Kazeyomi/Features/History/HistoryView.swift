@@ -136,10 +136,16 @@ struct HistoryView: View {
         .searchable(text: $searchText, prompt: "搜索")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button("刷新") {
-                    Task { await viewModel.refresh(serverSettings: serverSettings) }
+                if viewModel.isLoading {
+                    ProgressView()
+                } else {
+                    Button {
+                        Task { await viewModel.refresh(serverSettings: serverSettings) }
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                    .accessibilityLabel("刷新")
                 }
-                .disabled(viewModel.isLoading)
             }
         }
         .refreshable {
