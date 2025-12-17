@@ -3,6 +3,7 @@ import SwiftUI
 struct SourceMangaListView: View {
     @Environment(ServerSettingsStore.self) private var serverSettings
     @State private var viewModel = SourceMangaListViewModel()
+    @State private var searchText = ""
 
     let source: Source
 
@@ -63,10 +64,7 @@ struct SourceMangaListView: View {
                     if viewModel.hasNextPage {
                         Button {
                             Task {
-                                await viewModel.loadMore(
-                                    serverSettings: serverSettings,
-                                    sourceID: source.id
-                                )
+                                await viewModel.loadMoreCurrent(serverSettings: serverSettings, sourceID: source.id)
                             }
                         } label: {
                             HStack {
@@ -85,6 +83,25 @@ struct SourceMangaListView: View {
             }
         }
         .navigationTitle(source.displayName)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                NavigationLink {
+                    SourceSettingsView(sourceID: source.id)
+                } label: {
+                    Image(systemName: "gear")
+                }
+                .accessibilityLabel("设置")
+            }
+        }
+        .searchable(text: $searchText, placement: .toolbar, prompt: "搜索")
+        .onSubmit(of: .search) {
+            Task { await viewModel.search(serverSettings: serverSettings, sourceID: source.id, query: searchText) }
+        }
+        .onChange(of: searchText) { _, newValue in
+            if newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Task { await viewModel.search(serverSettings: serverSettings, sourceID: source.id, query: "") }
+            }
+        }
         .task(id: "\(TaskKey.forServerSettings(serverSettings))|source:\(source.id)") {
             await viewModel.load(
                 serverSettings: serverSettings,
@@ -92,10 +109,7 @@ struct SourceMangaListView: View {
             )
         }
         .refreshable {
-            await viewModel.load(
-                serverSettings: serverSettings,
-                sourceID: source.id
-            )
+            await viewModel.reload(serverSettings: serverSettings, sourceID: source.id)
         }
     }
 }

@@ -24,6 +24,13 @@ struct SourceMangaPage: Hashable {
     let mangas: [Manga]
 }
 
+struct SourcePreferencesPayload: Hashable {
+    let sourceID: String
+    let displayName: String
+    let isConfigurable: Bool
+    let preferences: [SourcePreferenceItem]
+}
+
 enum TachideskClientError: LocalizedError {
     case graphQLErrors([String])
     case missingData
@@ -77,6 +84,89 @@ final class TachideskClient {
         // Prefer raw string value to keep UI logic (e.g. "QUEUED") stable.
         // Some Apollo versions expose `rawValue` as `String`, others as `String?`.
         return (value.rawValue as String?) ?? "UNKNOWN"
+    }
+
+    private func mapSourcePreferences(_ preferences: [TachideskAPI.SourcePreferencesQuery.Data.Source.Preference]) -> [SourcePreferenceItem] {
+        preferences.enumerated().compactMap { index, preference in
+            if let p = preference.asCheckBoxPreference {
+                guard p.visible else { return nil }
+                return .checkBox(
+                    position: index,
+                    key: p.key,
+                    title: p.checkBoxTitle,
+                    summary: p.summary,
+                    value: p.checkBoxValue ?? p.checkBoxDefaultValue,
+                    defaultValue: p.checkBoxDefaultValue
+                )
+            }
+
+            if let p = preference.asSwitchPreference {
+                guard p.visible else { return nil }
+                return .toggle(
+                    position: index,
+                    key: p.key,
+                    title: p.switchTitle,
+                    summary: p.summary,
+                    value: p.switchValue ?? p.switchDefaultValue,
+                    defaultValue: p.switchDefaultValue
+                )
+            }
+
+            if let p = preference.asListPreference {
+                guard p.visible else { return nil }
+                let title = p.listTitle ?? p.key
+                let defaultValue = p.listDefaultValue
+                let value = p.listValue ?? defaultValue ?? p.entryValues.first ?? ""
+                return .list(
+                    position: index,
+                    key: p.key,
+                    title: title,
+                    summary: p.summary,
+                    value: value,
+                    defaultValue: defaultValue,
+                    entries: p.entries,
+                    entryValues: p.entryValues
+                )
+            }
+
+            if let p = preference.asEditTextPreference {
+                guard p.visible else { return nil }
+                let title = p.editTextTitle ?? p.key
+                let defaultValue = p.editTextDefaultValue
+                let value = p.editTextValue ?? defaultValue ?? ""
+                return .editText(
+                    position: index,
+                    key: p.key,
+                    title: title,
+                    summary: p.summary,
+                    value: value,
+                    defaultValue: defaultValue,
+                    dialogTitle: p.dialogTitle,
+                    dialogMessage: p.dialogMessage
+                )
+            }
+
+            if let p = preference.asMultiSelectListPreference {
+                guard p.visible else { return nil }
+                let title = p.multiSelectTitle ?? p.key
+                let defaultValues = p.multiSelectDefaultValue ?? []
+                let values = p.multiSelectValue ?? defaultValues
+                return .multiSelect(
+                    position: index,
+                    key: p.key,
+                    title: title,
+                    summary: p.summary,
+                    values: values,
+                    defaultValues: defaultValues,
+                    entries: p.entries,
+                    entryValues: p.entryValues,
+                    dialogTitle: p.dialogTitle,
+                    dialogMessage: p.dialogMessage
+                )
+            }
+
+            return nil
+        }
     }
 
     func aboutServer() async throws -> AboutServerPayload {
@@ -164,6 +254,31 @@ final class TachideskClient {
                 isNsfw: node.isNsfw,
                 supportsLatest: node.supportsLatest
             )
+        }
+    }
+
+    func sourcePreferences(sourceID: String) async throws -> SourcePreferencesPayload {
+        let client = try makeApolloClient()
+        let result = try await client.fetchAsync(query: TachideskAPI.SourcePreferencesQuery(sourceId: sourceID))
+        let data = try requireData(result)
+
+        let source = data.source
+        return SourcePreferencesPayload(
+            sourceID: source.id,
+            displayName: source.displayName,
+            isConfigurable: source.isConfigurable,
+            preferences: mapSourcePreferences(source.preferences)
+        )
+    }
+
+    func updateSourcePreference(sourceID: String, change: TachideskAPI.SourcePreferenceChangeInput) async throws {
+        let client = try makeApolloClient()
+        let result = try await client.performAsync(
+            mutation: TachideskAPI.UpdateSourcePreferenceMutation(sourceId: sourceID, change: change)
+        )
+        let data = try requireData(result)
+        guard data.updateSourcePreference != nil else {
+            throw TachideskClientError.missingData
         }
     }
 

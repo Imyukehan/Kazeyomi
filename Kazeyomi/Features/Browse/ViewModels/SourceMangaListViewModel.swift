@@ -10,11 +10,14 @@ final class SourceMangaListViewModel {
 
     private(set) var hasNextPage = false
     private var currentPage = 1
+    private var currentType: TachideskAPI.FetchSourceMangaType = .popular
+    private var currentQuery: String?
 
     func load(
         serverSettings: ServerSettingsStore,
         sourceID: String,
-        type: TachideskAPI.FetchSourceMangaType = .popular
+        type: TachideskAPI.FetchSourceMangaType = .popular,
+        query: String? = nil
     ) async {
         guard !isLoading else { return }
 
@@ -23,6 +26,8 @@ final class SourceMangaListViewModel {
         defer { isLoading = false }
 
         currentPage = 1
+        currentType = type
+        currentQuery = query
 
         do {
             let client = TachideskClient(serverSettings: serverSettings)
@@ -30,7 +35,7 @@ final class SourceMangaListViewModel {
                 sourceID: sourceID,
                 type: type,
                 page: currentPage,
-                query: nil
+                query: query
             )
             mangas = page.mangas
             hasNextPage = page.hasNextPage
@@ -41,10 +46,29 @@ final class SourceMangaListViewModel {
         }
     }
 
+    func reload(serverSettings: ServerSettingsStore, sourceID: String) async {
+        await load(
+            serverSettings: serverSettings,
+            sourceID: sourceID,
+            type: currentType,
+            query: currentQuery
+        )
+    }
+
+    func search(serverSettings: ServerSettingsStore, sourceID: String, query: String) async {
+        let q = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        if q.isEmpty {
+            await load(serverSettings: serverSettings, sourceID: sourceID, type: .popular, query: nil)
+            return
+        }
+        await load(serverSettings: serverSettings, sourceID: sourceID, type: .search, query: q)
+    }
+
     func loadMore(
         serverSettings: ServerSettingsStore,
         sourceID: String,
-        type: TachideskAPI.FetchSourceMangaType = .popular
+        type: TachideskAPI.FetchSourceMangaType = .popular,
+        query: String? = nil
     ) async {
         guard !isLoading, hasNextPage else { return }
 
@@ -59,7 +83,7 @@ final class SourceMangaListViewModel {
                 sourceID: sourceID,
                 type: type,
                 page: nextPageNumber,
-                query: nil
+                query: query
             )
             currentPage = nextPageNumber
             mangas.append(contentsOf: page.mangas)
@@ -67,5 +91,14 @@ final class SourceMangaListViewModel {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    func loadMoreCurrent(serverSettings: ServerSettingsStore, sourceID: String) async {
+        await loadMore(
+            serverSettings: serverSettings,
+            sourceID: sourceID,
+            type: currentType,
+            query: currentQuery
+        )
     }
 }

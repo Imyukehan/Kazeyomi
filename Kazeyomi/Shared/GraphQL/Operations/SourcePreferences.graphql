@@ -1,0 +1,59 @@
+query SourcePreferences($sourceId: LongString!) {
+  source(id: $sourceId) {
+    id
+    displayName
+    isConfigurable
+    preferences {
+      __typename
+      ... on CheckBoxPreference {
+        checkBoxValue: currentValue
+        checkBoxDefaultValue: default
+        key
+        summary
+        checkBoxTitle: title
+        visible
+      }
+      ... on SwitchPreference {
+        switchValue: currentValue
+        switchDefaultValue: default
+        key
+        summary
+        switchTitle: title
+        visible
+      }
+      ... on ListPreference {
+        listValue: currentValue
+        listDefaultValue: default
+        key
+        summary
+        listTitle: title
+        visible
+        entries
+        entryValues
+      }
+      ... on EditTextPreference {
+        editTextValue: currentValue
+        editTextDefaultValue: default
+        key
+        summary
+        editTextTitle: title
+        visible
+        text
+        dialogTitle
+        dialogMessage
+      }
+      ... on MultiSelectListPreference {
+        multiSelectValue: currentValue
+        multiSelectDefaultValue: default
+        key
+        summary
+        multiSelectTitle: title
+        visible
+        entries
+        entryValues
+        dialogTitle
+        dialogMessage
+      }
+    }
+  }
+}
