@@ -8,7 +8,7 @@ extension TachideskAPI {
     static let operationName: String = "CategoryMangas"
     static let operationDocument: ApolloAPI.OperationDocument = .init(
       definition: .init(
-        #"query CategoryMangas($categoryId: Int!) { category(id: $categoryId) { __typename mangas { __typename nodes { __typename id title thumbnailUrl } } } }"#
+        #"query CategoryMangas($categoryId: Int!) { category(id: $categoryId) { __typename mangas { __typename nodes { __typename id title thumbnailUrl inLibrary sourceId } } } }"#
       ))
 
     public var categoryId: Int
@@ -82,6 +82,8 @@ extension TachideskAPI {
               .field("id", Int.self),
               .field("title", String.self),
               .field("thumbnailUrl", String?.self),
+              .field("inLibrary", Bool.self),
+              .field("sourceId", TachideskAPI.LongString.self),
             ] }
             static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
               CategoryMangasQuery.Data.Category.Mangas.Node.self
@@ -90,6 +92,8 @@ extension TachideskAPI {
             var id: Int { __data["id"] }
             var title: String { __data["title"] }
             var thumbnailUrl: String? { __data["thumbnailUrl"] }
+            var inLibrary: Bool { __data["inLibrary"] }
+            var sourceId: TachideskAPI.LongString { __data["sourceId"] }
           }
         }
       }

@@ -103,9 +103,20 @@ final class TachideskClient {
         let result = try await client.fetchAsync(query: TachideskAPI.CategoryMangasQuery(categoryId: categoryID))
         let data = try requireData(result)
 
-        return data.category.mangas.nodes.map { node in
-            Manga(id: node.id, title: node.title, thumbnailUrl: node.thumbnailUrl)
+        let mangas = data.category.mangas.nodes.map { node in
+            Manga(
+                id: node.id,
+                title: node.title,
+                thumbnailUrl: node.thumbnailUrl,
+                inLibrary: node.inLibrary,
+                sourceId: node.sourceId
+            )
         }
+
+        var seenIDs = Set<Int>()
+        return mangas
+            .filter { $0.inLibrary }
+            .filter { seenIDs.insert($0.id).inserted }
     }
 
     func lastUpdateTimestamp() async throws -> String {

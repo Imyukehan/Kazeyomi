@@ -5,6 +5,8 @@ query CategoryMangas($categoryId: Int!) {
         id
         title
         thumbnailUrl
+        inLibrary
+        sourceId
       }
     }
   }
