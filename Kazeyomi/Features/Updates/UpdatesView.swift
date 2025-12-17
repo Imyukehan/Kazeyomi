@@ -115,7 +115,13 @@ struct UpdatesView: View {
         }
         .navigationTitle("更新")
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: {
+#if os(macOS)
+                .primaryAction
+#else
+                .topBarTrailing
+#endif
+            }()) {
                 if viewModel.isLoading {
                     ProgressView()
                 } else {

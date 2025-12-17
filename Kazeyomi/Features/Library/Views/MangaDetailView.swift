@@ -130,7 +130,9 @@ struct MangaDetailView: View {
             }
         }
         .navigationTitle(viewModel.manga?.title ?? "详情")
+#if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
+#endif
         .task(id: "\(TaskKey.forServerSettings(serverSettings))|manga:\(mangaID)") {
             await viewModel.load(serverSettings: serverSettings, mangaID: mangaID)
         }

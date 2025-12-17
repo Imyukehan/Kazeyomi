@@ -1,8 +1,8 @@
 import SwiftUI
+import Combine
 
 #if canImport(UIKit)
 import UIKit
-internal import Combine
 private typealias PlatformImage = UIImage
 private extension Image {
     init(platformImage: PlatformImage) {

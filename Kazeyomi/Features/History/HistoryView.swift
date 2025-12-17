@@ -135,7 +135,13 @@ struct HistoryView: View {
         .navigationTitle("历史")
         .searchable(text: $searchText, prompt: "搜索")
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: {
+#if os(macOS)
+                .primaryAction
+#else
+                .topBarTrailing
+#endif
+            }()) {
                 if viewModel.isLoading {
                     ProgressView()
                 } else {

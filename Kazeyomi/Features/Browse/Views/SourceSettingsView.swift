@@ -37,7 +37,9 @@ struct SourceSettingsView: View {
             }
         }
         .navigationTitle(viewModel.displayName.isEmpty ? "设置" : viewModel.displayName)
+#if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
+#endif
         .task(id: "\(TaskKey.forServerSettings(serverSettings))|sourceSettings:\(sourceID)") {
             await viewModel.load(serverSettings: serverSettings, sourceID: sourceID)
         }
@@ -256,14 +258,24 @@ private struct SourceEditTextPreferenceView: View {
 
             Section {
                 TextField("", text: $text)
+#if !os(macOS)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
+#endif
             }
         }
         .navigationTitle(title)
+#if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
+#endif
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: {
+#if os(macOS)
+                .primaryAction
+#else
+                .topBarTrailing
+#endif
+            }()) {
                 if isSaving {
                     ProgressView()
                 } else {
@@ -341,9 +353,17 @@ private struct SourceMultiSelectPreferenceView: View {
             }
         }
         .navigationTitle(title)
+    #if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
+    #endif
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: {
+#if os(macOS)
+                .primaryAction
+#else
+                .topBarTrailing
+#endif
+            }()) {
                 if isSaving {
                     ProgressView()
                 } else {

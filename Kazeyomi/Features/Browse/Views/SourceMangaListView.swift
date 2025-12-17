@@ -84,7 +84,13 @@ struct SourceMangaListView: View {
         }
         .navigationTitle(source.displayName)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: {
+#if os(macOS)
+                .primaryAction
+#else
+                .topBarTrailing
+#endif
+            }()) {
                 NavigationLink {
                     SourceSettingsView(sourceID: source.id)
                 } label: {

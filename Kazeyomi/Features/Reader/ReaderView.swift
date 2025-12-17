@@ -63,8 +63,10 @@ struct ReaderView: View {
             }
         }
         .navigationTitle(title)
+#if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .tabBar)
+#endif
         .task(id: "\(TaskKey.forServerSettings(serverSettings))|chapter:\(chapterID)") {
             await viewModel.load(serverSettings: serverSettings, chapterID: chapterID)
         }
