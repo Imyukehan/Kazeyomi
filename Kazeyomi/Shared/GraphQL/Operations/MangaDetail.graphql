@@ -10,6 +10,16 @@ query MangaDetail($id: Int!, $chaptersFirst: Int!, $chaptersOffset: Int!) {
     genre
     unreadCount
     inLibrary
+    url
+    realUrl
+    categories {
+      nodes {
+        id
+        name
+        order
+        default
+      }
+    }
   }
 
   chapters(

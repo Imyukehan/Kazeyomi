@@ -13,8 +13,12 @@ struct MangaDetail: Identifiable, Hashable {
     let status: String
     let genres: [String]
 
+    let url: String
+    let realUrl: String?
+    var categories: [Category]
+
     let unreadCount: Int
-    let inLibrary: Bool
+    var inLibrary: Bool
 }
 
 struct MangaChapter: Identifiable, Hashable {

@@ -8,7 +8,7 @@ extension TachideskAPI {
     static let operationName: String = "MangaDetail"
     static let operationDocument: ApolloAPI.OperationDocument = .init(
       definition: .init(
-        #"query MangaDetail($id: Int!, $chaptersFirst: Int!, $chaptersOffset: Int!) { manga(id: $id) { __typename id title thumbnailUrl author artist description status genre unreadCount inLibrary } chapters( first: $chaptersFirst offset: $chaptersOffset condition: { mangaId: $id } order: [{ by: SOURCE_ORDER, byType: DESC }] ) { __typename nodes { __typename id name chapterNumber scanlator isRead isDownloaded uploadDate } totalCount } }"#
+        #"query MangaDetail($id: Int!, $chaptersFirst: Int!, $chaptersOffset: Int!) { manga(id: $id) { __typename id title thumbnailUrl author artist description status genre unreadCount inLibrary url realUrl categories { __typename nodes { __typename id name order default } } } chapters( first: $chaptersFirst offset: $chaptersOffset condition: { mangaId: $id } order: [{ by: SOURCE_ORDER, byType: DESC }] ) { __typename nodes { __typename id name chapterNumber scanlator isRead isDownloaded uploadDate } totalCount } }"#
       ))
 
     public var id: Int
@@ -75,6 +75,9 @@ extension TachideskAPI {
           .field("genre", [String].self),
           .field("unreadCount", Int.self),
           .field("inLibrary", Bool.self),
+          .field("url", String.self),
+          .field("realUrl", String?.self),
+          .field("categories", Categories.self),
         ] }
         static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
           MangaDetailQuery.Data.Manga.self
@@ -90,6 +93,53 @@ extension TachideskAPI {
         var genre: [String] { __data["genre"] }
         var unreadCount: Int { __data["unreadCount"] }
         var inLibrary: Bool { __data["inLibrary"] }
+        var url: String { __data["url"] }
+        var realUrl: String? { __data["realUrl"] }
+        var categories: Categories { __data["categories"] }
+
+        /// Manga.Categories
+        ///
+        /// Parent Type: `CategoryNodeList`
+        struct Categories: TachideskAPI.SelectionSet {
+          let __data: DataDict
+          init(_dataDict: DataDict) { __data = _dataDict }
+
+          static var __parentType: any ApolloAPI.ParentType { TachideskAPI.Objects.CategoryNodeList }
+          static var __selections: [ApolloAPI.Selection] { [
+            .field("__typename", String.self),
+            .field("nodes", [Node].self),
+          ] }
+          static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
+            MangaDetailQuery.Data.Manga.Categories.self
+          ] }
+
+          var nodes: [Node] { __data["nodes"] }
+
+          /// Manga.Categories.Node
+          ///
+          /// Parent Type: `CategoryType`
+          struct Node: TachideskAPI.SelectionSet {
+            let __data: DataDict
+            init(_dataDict: DataDict) { __data = _dataDict }
+
+            static var __parentType: any ApolloAPI.ParentType { TachideskAPI.Objects.CategoryType }
+            static var __selections: [ApolloAPI.Selection] { [
+              .field("__typename", String.self),
+              .field("id", Int.self),
+              .field("name", String.self),
+              .field("order", Int.self),
+              .field("default", Bool.self),
+            ] }
+            static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
+              MangaDetailQuery.Data.Manga.Categories.Node.self
+            ] }
+
+            var id: Int { __data["id"] }
+            var name: String { __data["name"] }
+            var order: Int { __data["order"] }
+            var `default`: Bool { __data["default"] }
+          }
+        }
       }
 
       /// Chapters

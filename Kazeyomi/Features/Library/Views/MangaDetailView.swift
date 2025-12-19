@@ -2,7 +2,22 @@ import SwiftUI
 
 struct MangaDetailView: View {
     @Environment(ServerSettingsStore.self) private var serverSettings
+    @Environment(\.openURL) private var openURL
     @State private var viewModel = MangaDetailViewModel()
+
+    private enum ActiveSheet: Identifiable {
+        case addToLibrary
+        case editCategories
+
+        var id: Int {
+            switch self {
+            case .addToLibrary: return 1
+            case .editCategories: return 2
+            }
+        }
+    }
+
+    @State private var activeSheet: ActiveSheet?
 
     let mangaID: Int
 
@@ -65,10 +80,24 @@ struct MangaDetailView: View {
                             }
 
                             if !manga.genres.isEmpty {
-                                Text(manga.genres.joined(separator: " · "))
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 6) {
+                                        ForEach(manga.genres, id: \.self) { genre in
+                                            Text(genre)
+                                                .font(.caption)
+                                                .padding(.horizontal, 10)
+                                                .padding(.vertical, 5)
+                                                .background(.thinMaterial, in: Capsule())
+                                        }
+                                    }
+                                }
+                            }
+
+                            if !manga.categories.isEmpty {
+                                Text(manga.categories.map(\.name).joined(separator: " · "))
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
-                                    .lineLimit(2)
+                                    .lineLimit(1)
                             }
                         }
 
@@ -139,6 +168,69 @@ struct MangaDetailView: View {
         .refreshable {
             await viewModel.load(serverSettings: serverSettings, mangaID: mangaID, forceFetchChapters: true)
         }
+        .toolbar {
+            ToolbarItem(placement: {
+#if os(macOS)
+                .primaryAction
+#else
+                .topBarTrailing
+#endif
+            }()) {
+                if let manga = viewModel.manga {
+                    Menu {
+                        if manga.inLibrary {
+                            Button {
+                                Task { await viewModel.toggleInLibrary(serverSettings: serverSettings, mangaID: mangaID) }
+                            } label: {
+                                Label("移出书架", systemImage: "bookmark.slash")
+                            }
+                            .disabled(viewModel.isUpdatingLibrary)
+                        } else {
+                            Button {
+                                activeSheet = .addToLibrary
+                            } label: {
+                                Label("添加到书架", systemImage: "bookmark")
+                            }
+                            .disabled(viewModel.isUpdatingLibrary || viewModel.isUpdatingCategories)
+                        }
+
+                        Button {
+                            activeSheet = .editCategories
+                        } label: {
+                            Label("编辑分类", systemImage: "folder")
+                        }
+                        .disabled(viewModel.isUpdatingCategories)
+
+                        Button {
+                            openInBrowser()
+                        } label: {
+                            Label("在浏览器打开", systemImage: "safari")
+                        }
+                        .disabled(viewModel.browserURLString == nil)
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                    }
+                    .accessibilityLabel("更多操作")
+                }
+            }
+        }
+        .sheet(item: $activeSheet) { sheet in
+            switch sheet {
+            case .addToLibrary:
+                MangaCategoriesEditorView(
+                    title: "添加到书架",
+                    selectedCategoryIDs: []
+                ) { ids in
+                    await viewModel.addToLibrary(serverSettings: serverSettings, mangaID: mangaID, categoryIDs: ids)
+                }
+            case .editCategories:
+                MangaCategoriesEditorView(
+                    selectedCategoryIDs: viewModel.manga?.categories.map(\.id) ?? []
+                ) { ids in
+                    await viewModel.updateCategories(serverSettings: serverSettings, mangaID: mangaID, categoryIDs: ids)
+                }
+            }
+        }
     }
 
     private func formatChapterNumber(_ value: Double) -> String {
@@ -147,6 +239,12 @@ struct MangaDetailView: View {
             return String(Int(value))
         }
         return String(value)
+    }
+
+    private func openInBrowser() {
+        guard let urlString = viewModel.browserURLString else { return }
+        guard let url = serverSettings.resolvedURL(urlString) else { return }
+        openURL(url)
     }
 }
 

@@ -58,6 +58,8 @@ extension TachideskAPI {
       case "TrackRecordNodeList": return TachideskAPI.Objects.TrackRecordNodeList
       case "TrackerNodeList": return TachideskAPI.Objects.TrackerNodeList
       case "UpdateChapterPayload": return TachideskAPI.Objects.UpdateChapterPayload
+      case "UpdateMangaCategoriesPayload": return TachideskAPI.Objects.UpdateMangaCategoriesPayload
+      case "UpdateMangaPayload": return TachideskAPI.Objects.UpdateMangaPayload
       case "UpdateSourcePreferencePayload": return TachideskAPI.Objects.UpdateSourcePreferencePayload
       default: return nil
       }

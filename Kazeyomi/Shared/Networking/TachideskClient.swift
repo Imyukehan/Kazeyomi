@@ -392,6 +392,9 @@ final class TachideskClient {
         let data = try requireData(result)
 
         let manga = data.manga
+        let categories = manga.categories.nodes.map { node in
+            Category(id: node.id, name: node.name, order: node.order, isDefault: node.default)
+        }
         let detail = MangaDetail(
             id: manga.id,
             title: manga.title,
@@ -401,6 +404,9 @@ final class TachideskClient {
             description: manga.description,
             status: rawValue(manga.status),
             genres: manga.genre,
+            url: manga.url,
+            realUrl: manga.realUrl,
+            categories: categories,
             unreadCount: manga.unreadCount,
             inLibrary: manga.inLibrary
         )
@@ -418,6 +424,64 @@ final class TachideskClient {
         }
 
         return (detail, chapters)
+    }
+
+    func updateMangaInLibrary(mangaID: Int, inLibrary: Bool) async throws -> Bool {
+        let client = try makeApolloClient()
+        let result = try await client.performAsync(
+            mutation: TachideskAPI.UpdateMangaMutation(
+                id: mangaID,
+                patch: TachideskAPI.UpdateMangaPatchInput(inLibrary: .some(inLibrary))
+            )
+        )
+        let data = try requireData(result)
+
+        guard let payload = data.updateManga else {
+            throw TachideskClientError.missingData
+        }
+
+        return payload.manga.inLibrary
+    }
+
+    func setMangaCategories(mangaID: Int, categoryIDs: [Int], currentCategoryIDs: [Int]) async throws -> [Category] {
+        let client = try makeApolloClient()
+
+        // Sorayomi updates categories via add/remove, not clear.
+        // Also, Tachidesk may auto-assign the "default" category when adding to library.
+        // To prevent the manga from sticking to default, explicitly remove default categories
+        // unless the user selected them.
+        let all = try await allCategories()
+        let defaultIDs = Set(all.filter(\.isDefault).map(\.id))
+
+        let desired = Set(categoryIDs)
+        let current = Set(currentCategoryIDs)
+
+        let removeSet = current
+            .union(defaultIDs)
+            .subtracting(desired)
+
+        let addSet = desired.subtracting(current)
+
+        let patch = TachideskAPI.UpdateMangaCategoriesPatchInput(
+            addToCategories: addSet.isEmpty ? nil : .some(Array(addSet).sorted()),
+            removeFromCategories: removeSet.isEmpty ? nil : .some(Array(removeSet).sorted())
+        )
+
+        let result = try await client.performAsync(
+            mutation: TachideskAPI.UpdateMangaCategoriesMutation(
+                id: mangaID,
+                patch: patch
+            )
+        )
+        let data = try requireData(result)
+
+        guard let payload = data.updateMangaCategories else {
+            throw TachideskClientError.missingData
+        }
+
+        return payload.manga.categories.nodes.map { node in
+            Category(id: node.id, name: node.name, order: node.order, isDefault: node.default)
+        }
     }
 
     func fetchChapters(mangaID: Int) async throws {
