@@ -40,8 +40,10 @@ extension TachideskAPI {
       case "DownloadType": return TachideskAPI.Objects.DownloadType
       case "EditTextPreference": return TachideskAPI.Objects.EditTextPreference
       case "ExtensionNodeList": return TachideskAPI.Objects.ExtensionNodeList
+      case "ExtensionType": return TachideskAPI.Objects.ExtensionType
       case "FetchChapterPagesPayload": return TachideskAPI.Objects.FetchChapterPagesPayload
       case "FetchChaptersPayload": return TachideskAPI.Objects.FetchChaptersPayload
+      case "FetchExtensionsPayload": return TachideskAPI.Objects.FetchExtensionsPayload
       case "FetchSourceMangaPayload": return TachideskAPI.Objects.FetchSourceMangaPayload
       case "GlobalMetaNodeList": return TachideskAPI.Objects.GlobalMetaNodeList
       case "LastUpdateTimestampPayload": return TachideskAPI.Objects.LastUpdateTimestampPayload
@@ -58,6 +60,7 @@ extension TachideskAPI {
       case "TrackRecordNodeList": return TachideskAPI.Objects.TrackRecordNodeList
       case "TrackerNodeList": return TachideskAPI.Objects.TrackerNodeList
       case "UpdateChapterPayload": return TachideskAPI.Objects.UpdateChapterPayload
+      case "UpdateExtensionPayload": return TachideskAPI.Objects.UpdateExtensionPayload
       case "UpdateMangaCategoriesPayload": return TachideskAPI.Objects.UpdateMangaCategoriesPayload
       case "UpdateMangaPayload": return TachideskAPI.Objects.UpdateMangaPayload
       case "UpdateSourcePreferencePayload": return TachideskAPI.Objects.UpdateSourcePreferencePayload

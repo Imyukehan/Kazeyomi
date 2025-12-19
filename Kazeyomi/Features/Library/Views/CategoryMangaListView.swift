@@ -57,6 +57,9 @@ struct CategoryMangaListView: View {
             }
         }
         .navigationTitle(category.name)
+#if !os(macOS)
+        .toolbar(.hidden, for: .tabBar)
+#endif
         .task(id: TaskKey.serverSettings(
             baseURLString: serverSettings.baseURLString,
             addPort: serverSettings.addPort,

@@ -83,6 +83,9 @@ struct SourceMangaListView: View {
             }
         }
         .navigationTitle(source.displayName)
+#if !os(macOS)
+        .toolbar(.hidden, for: .tabBar)
+#endif
         .toolbar {
             ToolbarItem(placement: {
 #if os(macOS)

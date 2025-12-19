@@ -1,0 +1,18 @@
+mutation FetchExtensions {
+  fetchExtensions(input: {}) {
+    extensions {
+      pkgName
+      name
+      lang
+      versionName
+      versionCode
+      iconUrl
+      isInstalled
+      hasUpdate
+      isObsolete
+      isNsfw
+      repo
+      apkName
+    }
+  }
+}

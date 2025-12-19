@@ -1,0 +1,18 @@
+query Extensions($first: Int!, $offset: Int!) {
+  extensions(first: $first, offset: $offset, orderBy: NAME, orderByType: ASC) {
+    nodes {
+      pkgName
+      name
+      lang
+      versionName
+      versionCode
+      iconUrl
+      isInstalled
+      hasUpdate
+      isObsolete
+      isNsfw
+      repo
+      apkName
+    }
+  }
+}

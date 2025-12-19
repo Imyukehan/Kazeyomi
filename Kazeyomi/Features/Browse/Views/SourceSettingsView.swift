@@ -39,6 +39,7 @@ struct SourceSettingsView: View {
         .navigationTitle(viewModel.displayName.isEmpty ? "设置" : viewModel.displayName)
 #if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .tabBar)
 #endif
         .task(id: "\(TaskKey.forServerSettings(serverSettings))|sourceSettings:\(sourceID)") {
             await viewModel.load(serverSettings: serverSettings, sourceID: sourceID)

@@ -134,26 +134,6 @@ struct HistoryView: View {
         }
         .navigationTitle("历史")
         .searchable(text: $searchText, prompt: "搜索")
-        .toolbar {
-            ToolbarItem(placement: {
-#if os(macOS)
-                .primaryAction
-#else
-                .topBarTrailing
-#endif
-            }()) {
-                if viewModel.isLoading {
-                    ProgressView()
-                } else {
-                    Button {
-                        Task { await viewModel.refresh(serverSettings: serverSettings) }
-                    } label: {
-                        Image(systemName: "arrow.clockwise")
-                    }
-                    .accessibilityLabel("刷新")
-                }
-            }
-        }
         .refreshable {
             await viewModel.refresh(serverSettings: serverSettings)
         }

@@ -79,7 +79,6 @@ struct LibraryView: View {
                                 .padding(.vertical, 4)
                             }
                         }
-                        .listStyle(.plain)
                     }
                 }
             }

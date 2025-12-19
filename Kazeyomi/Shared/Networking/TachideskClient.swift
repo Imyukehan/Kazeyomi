@@ -31,6 +31,12 @@ struct SourcePreferencesPayload: Hashable {
     let preferences: [SourcePreferenceItem]
 }
 
+enum ExtensionUpdateAction {
+    case install
+    case uninstall
+    case update
+}
+
 enum TachideskClientError: LocalizedError {
     case graphQLErrors([String])
     case missingData
@@ -255,6 +261,88 @@ final class TachideskClient {
                 supportsLatest: node.supportsLatest
             )
         }
+    }
+
+    func extensions(first: Int = 500, offset: Int = 0) async throws -> [ExtensionPackage] {
+        let client = try makeApolloClient()
+        let result = try await client.fetchAsync(query: TachideskAPI.ExtensionsQuery(first: first, offset: offset))
+        let data = try requireData(result)
+
+        return data.extensions.nodes.map { node in
+            ExtensionPackage(
+                pkgName: node.pkgName,
+                name: node.name,
+                lang: node.lang,
+                versionName: node.versionName,
+                versionCode: node.versionCode,
+                iconUrl: node.iconUrl,
+                isInstalled: node.isInstalled,
+                hasUpdate: node.hasUpdate,
+                isObsolete: node.isObsolete,
+                isNsfw: node.isNsfw,
+                repo: node.repo,
+                apkName: node.apkName
+            )
+        }
+    }
+
+    func fetchExtensions() async throws -> [ExtensionPackage] {
+        let client = try makeApolloClient()
+        let result = try await client.performAsync(mutation: TachideskAPI.FetchExtensionsMutation())
+        let data = try requireData(result)
+
+        guard let payload = data.fetchExtensions else { return [] }
+        return payload.extensions.map { ext in
+            ExtensionPackage(
+                pkgName: ext.pkgName,
+                name: ext.name,
+                lang: ext.lang,
+                versionName: ext.versionName,
+                versionCode: ext.versionCode,
+                iconUrl: ext.iconUrl,
+                isInstalled: ext.isInstalled,
+                hasUpdate: ext.hasUpdate,
+                isObsolete: ext.isObsolete,
+                isNsfw: ext.isNsfw,
+                repo: ext.repo,
+                apkName: ext.apkName
+            )
+        }
+    }
+
+    func updateExtension(pkgName: String, action: ExtensionUpdateAction) async throws -> ExtensionPackage? {
+        let client = try makeApolloClient()
+
+        let patch: TachideskAPI.UpdateExtensionPatchInput
+        switch action {
+        case .install:
+            patch = TachideskAPI.UpdateExtensionPatchInput(install: true)
+        case .uninstall:
+            patch = TachideskAPI.UpdateExtensionPatchInput(uninstall: true)
+        case .update:
+            patch = TachideskAPI.UpdateExtensionPatchInput(update: true)
+        }
+
+        let result = try await client.performAsync(
+            mutation: TachideskAPI.UpdateExtensionMutation(id: pkgName, patch: patch)
+        )
+        let data = try requireData(result)
+
+        guard let ext = data.updateExtension?.extension else { return nil }
+        return ExtensionPackage(
+            pkgName: ext.pkgName,
+            name: ext.name,
+            lang: ext.lang,
+            versionName: ext.versionName,
+            versionCode: ext.versionCode,
+            iconUrl: ext.iconUrl,
+            isInstalled: ext.isInstalled,
+            hasUpdate: ext.hasUpdate,
+            isObsolete: ext.isObsolete,
+            isNsfw: ext.isNsfw,
+            repo: ext.repo,
+            apkName: ext.apkName
+        )
     }
 
     func sourcePreferences(sourceID: String) async throws -> SourcePreferencesPayload {
