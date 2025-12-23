@@ -62,7 +62,7 @@ struct AppRootView: View {
                 case .downloads:
                     DownloadsView()
                 case .settings:
-                    ServerSettingsView()
+                    SettingsView()
                 }
             }
         }
@@ -96,15 +96,15 @@ struct AppRootView: View {
                 Label("历史", systemImage: "clock")
             }
 
-            NavigationStack {
-                DownloadsView()
-            }
-            .tabItem {
-                Label("下载", systemImage: "arrow.down.circle")
-            }
+            // NavigationStack {
+            //     DownloadsView()
+            // }
+            // .tabItem {
+            //     Label("下载", systemImage: "arrow.down.circle")
+            // }
 
             NavigationStack {
-                ServerSettingsView()
+                SettingsView()
             }
             .tabItem {
                 Label("设置", systemImage: "gearshape")
