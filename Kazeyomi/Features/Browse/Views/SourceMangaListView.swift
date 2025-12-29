@@ -79,7 +79,6 @@ struct SourceMangaListView: View {
                         }
                     }
                 }
-                .listStyle(.plain)
             }
         }
         .navigationTitle(source.displayName)
