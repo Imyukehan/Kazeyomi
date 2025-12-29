@@ -5,6 +5,8 @@ struct MangaDetailView: View {
     @Environment(\.openURL) private var openURL
     @State private var viewModel = MangaDetailViewModel()
 
+    @State private var activeReaderChapter: MangaChapter?
+
     private enum ActiveSheet: Identifiable {
         case addToLibrary
         case editCategories
@@ -20,6 +22,17 @@ struct MangaDetailView: View {
     @State private var activeSheet: ActiveSheet?
 
     let mangaID: Int
+
+    private var continueChapter: MangaChapter? {
+        viewModel.chapters.first(where: { !$0.isRead }) ?? viewModel.chapters.first
+    }
+
+    private var startChapter: MangaChapter? {
+        guard let first = viewModel.chapters.first, let last = viewModel.chapters.last else { return nil }
+        // If the list is sorted newest-first (common), start-from-beginning should open the last row.
+        // If it's oldest-first, it should open the first row.
+        return first.chapterNumber >= last.chapterNumber ? last : first
+    }
 
     var body: some View {
         List {
@@ -163,6 +176,42 @@ struct MangaDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .tabBar)
 #endif
+        .navigationDestination(item: $activeReaderChapter) { chapter in
+            ReaderView(
+                chapterID: chapter.id,
+                title: chapter.name
+            )
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if viewModel.manga != nil {
+                HStack(spacing: 12) {
+                    Button {
+                        if let chapter = startChapter {
+                            activeReaderChapter = chapter
+                        }
+                    } label: {
+                        Text("从头开始")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(startChapter == nil)
+
+                    Button {
+                        if let chapter = continueChapter {
+                            activeReaderChapter = chapter
+                        }
+                    } label: {
+                        Text("继续阅读")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(continueChapter == nil)
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 10)
+                .background(.regularMaterial)
+            }
+        }
         .task(id: "\(TaskKey.forServerSettings(serverSettings))|manga:\(mangaID)") {
             await viewModel.load(serverSettings: serverSettings, mangaID: mangaID)
         }
