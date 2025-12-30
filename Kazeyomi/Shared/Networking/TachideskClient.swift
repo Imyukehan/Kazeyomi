@@ -52,6 +52,8 @@ enum TachideskClientError: LocalizedError {
 }
 
 final class TachideskClient {
+    private static let defaultCategoryID = 0
+
     private let serverSettings: ServerSettingsStore
     private let clientFactory: TachideskApolloClientFactory
 
@@ -191,7 +193,10 @@ final class TachideskClient {
 
     func allCategories(first: Int = 200, offset: Int = 0) async throws -> [Category] {
         let client = try makeApolloClient()
-        let result = try await client.fetchAsync(query: TachideskAPI.AllCategoriesQuery(first: first, offset: offset))
+        let result = try await client.fetchAsync(
+            query: TachideskAPI.AllCategoriesQuery(first: first, offset: offset),
+            cachePolicy: .fetchIgnoringCacheCompletely
+        )
         let data = try requireData(result)
 
         return data.categories.nodes.map { node in
@@ -201,7 +206,10 @@ final class TachideskClient {
 
     func categoryMangas(categoryID: Int) async throws -> [Manga] {
         let client = try makeApolloClient()
-        let result = try await client.fetchAsync(query: TachideskAPI.CategoryMangasQuery(categoryId: categoryID))
+        let result = try await client.fetchAsync(
+            query: TachideskAPI.CategoryMangasQuery(categoryId: categoryID),
+            cachePolicy: .fetchIgnoringCacheCompletely
+        )
         let data = try requireData(result)
 
         let mangas = data.category.mangas.nodes.map { node in
@@ -534,21 +542,15 @@ final class TachideskClient {
     func setMangaCategories(mangaID: Int, categoryIDs: [Int], currentCategoryIDs: [Int]) async throws -> [Category] {
         let client = try makeApolloClient()
 
-        // Sorayomi updates categories via add/remove, not clear.
-        // Also, Tachidesk may auto-assign the "default" category when adding to library.
-        // To prevent the manga from sticking to default, explicitly remove default categories
-        // unless the user selected them.
-        let all = try await allCategories()
-        let defaultIDs = Set(all.filter(\.isDefault).map(\.id))
+        // WebUI behavior:
+        // - The "Default" category is a special server category with id == 0.
+        // - It is hidden from the UI and not explicitly added/removed.
+        // - Category changes are done via add/remove diff over NON-default categories.
+        let desiredNonDefault = Set(categoryIDs).subtracting([Self.defaultCategoryID])
+        let currentNonDefault = Set(currentCategoryIDs).subtracting([Self.defaultCategoryID])
 
-        let desired = Set(categoryIDs)
-        let current = Set(currentCategoryIDs)
-
-        let removeSet = current
-            .union(defaultIDs)
-            .subtracting(desired)
-
-        let addSet = desired.subtracting(current)
+        let addSet = desiredNonDefault.subtracting(currentNonDefault)
+        let removeSet = currentNonDefault.subtracting(desiredNonDefault)
 
         let patch = TachideskAPI.UpdateMangaCategoriesPatchInput(
             addToCategories: addSet.isEmpty ? nil : .some(Array(addSet).sorted()),

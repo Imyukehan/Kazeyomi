@@ -21,6 +21,10 @@ struct MangaDetailView: View {
 
     @State private var activeSheet: ActiveSheet?
 
+    // Capture selection at the moment the sheet is opened to avoid the sheet view
+    // being re-initialized (and losing local selection state) when the parent view updates.
+    @State private var categoryEditorSelection: Set<Int> = []
+
     let mangaID: Int
 
     private var continueChapter: MangaChapter? {
@@ -237,6 +241,7 @@ struct MangaDetailView: View {
                             .disabled(viewModel.isUpdatingLibrary)
                         } else {
                             Button {
+                                categoryEditorSelection = []
                                 activeSheet = .addToLibrary
                             } label: {
                                 Label("添加到书架", systemImage: "bookmark")
@@ -245,6 +250,9 @@ struct MangaDetailView: View {
                         }
 
                         Button {
+                            // Match WebUI: Default category is id == 0 and is not user-selectable.
+                            let ids = viewModel.manga?.categories.map(\.id) ?? []
+                            categoryEditorSelection = Set(ids).subtracting([0])
                             activeSheet = .editCategories
                         } label: {
                             Label("编辑分类", systemImage: "folder")
@@ -269,15 +277,17 @@ struct MangaDetailView: View {
             case .addToLibrary:
                 MangaCategoriesEditorView(
                     title: "添加到书架",
-                    selectedCategoryIDs: []
-                ) { ids in
-                    await viewModel.addToLibrary(serverSettings: serverSettings, mangaID: mangaID, categoryIDs: ids)
+                    selectedCategoryIDs: $categoryEditorSelection
+                ) { _ in
+                    let effectiveIDs = categoryEditorSelection.subtracting([0]).sorted()
+                    await viewModel.addToLibrary(serverSettings: serverSettings, mangaID: mangaID, categoryIDs: effectiveIDs)
                 }
             case .editCategories:
                 MangaCategoriesEditorView(
-                    selectedCategoryIDs: viewModel.manga?.categories.map(\.id) ?? []
-                ) { ids in
-                    await viewModel.updateCategories(serverSettings: serverSettings, mangaID: mangaID, categoryIDs: ids)
+                    selectedCategoryIDs: $categoryEditorSelection
+                ) { _ in
+                    let effectiveIDs = categoryEditorSelection.subtracting([0]).sorted()
+                    await viewModel.updateCategories(serverSettings: serverSettings, mangaID: mangaID, categoryIDs: effectiveIDs)
                 }
             }
         }

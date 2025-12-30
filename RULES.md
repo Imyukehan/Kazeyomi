@@ -9,7 +9,7 @@
 - **渐进式开发**：先有可运行的骨架（Tab/导航/占位），再逐步接入真实数据与交互。
 - **结构先行**：代码按 Feature-first + Shared 分层；新增功能先决定放在哪个目录。
 - **小步可回退**：频繁、小范围提交，保证每个阶段可编译可运行。
-- **不确定就对齐参考实现**：对于不确定的地方，参考 Sorayomi 的实现。
+- **不确定就对齐参考实现**：对于不确定的地方，优先参考官方 `Suwayomi-WebUI` 的实现与 GraphQL 操作。
 
 ## 目录结构
 
@@ -67,11 +67,18 @@
 - **Updates（对齐 Sorayomi）**：最近章节列表 + 分页加载 + 按日期分组 + 下拉刷新。
 - **History（对齐 Sorayomi）**：阅读历史列表 + 搜索 + 按日期分组 + 移除条目（通过 `updateChapter` patch）。
 
+> 注：上述部分功能早期参考了 Sorayomi（Flutter 客户端）。由于 Sorayomi 更新滞后，后续接口/交互以官方 `Suwayomi-WebUI` 为准；当出现不一致时，应优先检查 WebUI 的 GraphQL query/mutation 与字段。
+
 ## 技术栈选择（偏开发便利、官方优先）
 
 - UI：SwiftUI
 - 状态：优先用SwiftUI/Observation（按项目最低系统版本选择），避免过早引入大型第三方架构
 - 网络：GraphQL 使用 Apollo iOS 统一管理（Schema/代码生成/类型安全/缓存）；非 GraphQL 请求继续使用 `URLSession`；所有网络访问统一封装在 `Shared/Networking/`，禁止在 View 直接发请求。
+
+### GraphQL 对齐原则（新增）
+
+- **以 WebUI 为准**：当服务端升级导致字段/入参变化时，先在 `Suwayomi-WebUI/src/lib/graphql/**` 中确认对应 query/mutation，再同步更新本项目的 `Shared/GraphQL/Schema/schema.graphqls` 与 `Shared/GraphQL/Operations/*.graphql` 并重新 codegen。
+- **避免猜接口**：如果某个行为在 Sorayomi 与 WebUI 不一致，默认按 WebUI 的行为与边界条件实现。
 - 存储：优先 `UserDefaults`（设置） + `SwiftData`（结构化数据）
 
 ## 命名与代码风格

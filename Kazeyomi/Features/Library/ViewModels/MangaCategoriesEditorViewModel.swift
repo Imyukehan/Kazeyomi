@@ -19,6 +19,9 @@ final class MangaCategoriesEditorViewModel {
         do {
             let client = TachideskClient(serverSettings: serverSettings)
             categories = try await client.allCategories()
+
+            // Match WebUI: hide the special "Default" category (id == 0).
+            categories.removeAll(where: { $0.id == 0 })
         } catch {
             categories = []
             errorMessage = error.localizedDescription

@@ -90,11 +90,16 @@ final class MangaDetailViewModel {
         do {
             let client = TachideskClient(serverSettings: serverSettings)
             _ = try await client.updateMangaInLibrary(mangaID: mangaID, inLibrary: true)
-            // Explicitly set categories (even empty) to avoid default category assignment.
+
+            // Refresh current categories after inLibrary toggle to capture any server-side
+            // default category assignment, then apply the category diff update.
+            let (refreshedDetail, _) = try await client.mangaDetail(id: mangaID, chaptersFirst: 1, chaptersOffset: 0)
+            manga?.categories = refreshedDetail.categories
+
             let categories = try await client.setMangaCategories(
                 mangaID: mangaID,
                 categoryIDs: categoryIDs,
-                currentCategoryIDs: previousCategories.map(\.id)
+                currentCategoryIDs: refreshedDetail.categories.map(\.id)
             )
             manga?.categories = categories
         } catch {

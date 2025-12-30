@@ -17,7 +17,10 @@ final class LibraryViewModel {
 
         do {
             let client = TachideskClient(serverSettings: serverSettings)
-            let result = try await client.allCategories()
+            var result = try await client.allCategories()
+
+            // Match WebUI: hide the special "Default" category (id == 0).
+            result.removeAll(where: { $0.id == 0 })
 
             // Hide categories that are confirmed empty (e.g. Default often is).
             // If we fail to determine emptiness (network error), keep the category to avoid hiding data.

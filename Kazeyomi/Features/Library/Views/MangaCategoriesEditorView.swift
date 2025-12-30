@@ -5,19 +5,19 @@ struct MangaCategoriesEditorView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var viewModel = MangaCategoriesEditorViewModel()
-    @State private var selectedCategoryIDs: Set<Int>
+    @Binding private var selectedCategoryIDs: Set<Int>
 
     let title: String
     let onSave: ([Int]) async -> Void
 
     init(
         title: String = "编辑分类",
-        selectedCategoryIDs: [Int],
+        selectedCategoryIDs: Binding<Set<Int>>,
         onSave: @escaping ([Int]) async -> Void
     ) {
         self.title = title
         self.onSave = onSave
-        _selectedCategoryIDs = State(initialValue: Set(selectedCategoryIDs))
+        self._selectedCategoryIDs = selectedCategoryIDs
     }
 
     var body: some View {
@@ -46,10 +46,12 @@ struct MangaCategoriesEditorView: View {
                                 Toggle(isOn: Binding(
                                     get: { selectedCategoryIDs.contains(category.id) },
                                     set: { isOn in
+                                        // Assign a new Set value (instead of mutating in-place)
+                                        // to ensure SwiftUI observes the state change reliably.
                                         if isOn {
-                                            selectedCategoryIDs.insert(category.id)
+                                            selectedCategoryIDs = selectedCategoryIDs.union([category.id])
                                         } else {
-                                            selectedCategoryIDs.remove(category.id)
+                                            selectedCategoryIDs = selectedCategoryIDs.subtracting([category.id])
                                         }
                                     }
                                 )) {
@@ -90,7 +92,9 @@ struct MangaCategoriesEditorView: View {
 #endif
                 }()) {
                     Button("保存") {
-                        let ids = selectedCategoryIDs.sorted()
+                        let ids = selectedCategoryIDs
+                            .subtracting([0])
+                            .sorted()
                         Task {
                             await onSave(ids)
                             dismiss()
@@ -106,6 +110,8 @@ struct MangaCategoriesEditorView: View {
 }
 
 #Preview {
-    MangaCategoriesEditorView(selectedCategoryIDs: [1, 2, 3]) { _ in }
+    MangaCategoriesEditorView(
+        selectedCategoryIDs: .constant([1, 2, 3])
+    ) { _ in }
         .environment(ServerSettingsStore())
 }

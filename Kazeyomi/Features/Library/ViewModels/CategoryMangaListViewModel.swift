@@ -52,12 +52,9 @@ final class CategoryMangaListViewModel {
                 // If we can't determine installed sources, don't hide based on this heuristic.
                 guard !installedSourceIDs.isEmpty else { return false }
 
-                // If the source isn't installed and we also can't show a thumbnail, treat it
-                // as a legacy/migrated record and hide it.
-                if !installedSourceIDs.contains(manga.sourceId), !hasThumbnail(manga) {
-                    return true
-                }
-                return false
+                // If the source isn't installed, treat the entry as an "unknown source" manga.
+                // These usually come from removed/expired extensions; hide them in library lists.
+                return !installedSourceIDs.contains(manga.sourceId)
             }
 
             var firstIndexByTitle: [String: Int] = [:]
