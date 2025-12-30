@@ -1,6 +1,40 @@
 import SwiftUI
 
 struct AppRootView: View {
+    #if !os(macOS)
+    private enum RootTab: String, CaseIterable, Identifiable {
+        case library
+        case browse
+        case updates
+        case history
+        case settings
+
+        var id: String { rawValue }
+
+        var title: String {
+            switch self {
+            case .library: return "书库"
+            case .browse: return "浏览"
+            case .updates: return "更新"
+            case .history: return "历史"
+            case .settings: return "设置"
+            }
+        }
+
+        var systemImage: String {
+            switch self {
+            case .library: return "books.vertical"
+            case .browse: return "safari"
+            case .updates: return "arrow.triangle.2.circlepath"
+            case .history: return "clock"
+            case .settings: return "gearshape"
+            }
+        }
+    }
+
+    @State private var selection: RootTab = .library
+    #endif
+
     #if os(macOS)
     private enum SidebarItem: String, CaseIterable, Identifiable {
         case library
@@ -67,47 +101,66 @@ struct AppRootView: View {
             }
         }
         #else
-        TabView {
-            NavigationStack {
-                LibraryView()
+        NavigationStack {
+            Group {
+                switch selection {
+                case .library:
+                    LibraryView()
+                case .browse:
+                    BrowseView()
+                case .updates:
+                    UpdatesView()
+                case .history:
+                    HistoryView()
+                case .settings:
+                    SettingsView()
+                }
             }
-            .tabItem {
-                Label("书库", systemImage: "books.vertical")
-            }
+            .toolbar {
+                ToolbarItemGroup(placement: .bottomBar) {
+                    Button {
+                        selection = .library
+                    } label: {
+                        Label(RootTab.library.title, systemImage: RootTab.library.systemImage)
+                    }
+                    .disabled(selection == .library)
 
-            NavigationStack {
-                BrowseView()
-            }
-            .tabItem {
-                Label("浏览", systemImage: "safari")
-            }
+                    Spacer(minLength: 0)
 
-            NavigationStack {
-                UpdatesView()
-            }
-            .tabItem {
-                Label("更新", systemImage: "arrow.triangle.2.circlepath")
-            }
+                    Button {
+                        selection = .browse
+                    } label: {
+                        Label(RootTab.browse.title, systemImage: RootTab.browse.systemImage)
+                    }
+                    .disabled(selection == .browse)
 
-            NavigationStack {
-                HistoryView()
-            }
-            .tabItem {
-                Label("历史", systemImage: "clock")
-            }
+                    Spacer(minLength: 0)
 
-            // NavigationStack {
-            //     DownloadsView()
-            // }
-            // .tabItem {
-            //     Label("下载", systemImage: "arrow.down.circle")
-            // }
+                    Button {
+                        selection = .updates
+                    } label: {
+                        Label(RootTab.updates.title, systemImage: RootTab.updates.systemImage)
+                    }
+                    .disabled(selection == .updates)
 
-            NavigationStack {
-                SettingsView()
-            }
-            .tabItem {
-                Label("设置", systemImage: "gearshape")
+                    Spacer(minLength: 0)
+
+                    Button {
+                        selection = .history
+                    } label: {
+                        Label(RootTab.history.title, systemImage: RootTab.history.systemImage)
+                    }
+                    .disabled(selection == .history)
+
+                    Spacer(minLength: 0)
+
+                    Button {
+                        selection = .settings
+                    } label: {
+                        Label(RootTab.settings.title, systemImage: RootTab.settings.systemImage)
+                    }
+                    .disabled(selection == .settings)
+                }
             }
         }
         #endif

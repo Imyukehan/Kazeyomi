@@ -38,6 +38,22 @@ struct MangaDetailView: View {
         return first.chapterNumber >= last.chapterNumber ? last : first
     }
 
+    private var hasStartedReading: Bool {
+        viewModel.chapters.contains(where: { $0.isRead })
+    }
+
+    private var primaryReadChapter: MangaChapter? {
+        hasStartedReading ? continueChapter : startChapter
+    }
+
+    private var primaryReadButtonTitle: String {
+        hasStartedReading ? "继续阅读" : "开始阅读"
+    }
+
+    private var primaryReadButtonSystemImage: String {
+        hasStartedReading ? "arrow.right.circle.fill" : "play.fill"
+    }
+
     var body: some View {
         List {
             if viewModel.isLoading && viewModel.manga == nil {
@@ -186,36 +202,6 @@ struct MangaDetailView: View {
                 title: chapter.name
             )
         }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            if viewModel.manga != nil {
-                HStack(spacing: 12) {
-                    Button {
-                        if let chapter = startChapter {
-                            activeReaderChapter = chapter
-                        }
-                    } label: {
-                        Text("从头开始")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.bordered)
-                    .disabled(startChapter == nil)
-
-                    Button {
-                        if let chapter = continueChapter {
-                            activeReaderChapter = chapter
-                        }
-                    } label: {
-                        Text("继续阅读")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(continueChapter == nil)
-                }
-                .padding(.horizontal)
-                .padding(.vertical, 10)
-                .background(.regularMaterial)
-            }
-        }
         .task(id: "\(TaskKey.forServerSettings(serverSettings))|manga:\(mangaID)") {
             await viewModel.load(serverSettings: serverSettings, mangaID: mangaID)
         }
@@ -271,6 +257,23 @@ struct MangaDetailView: View {
                     .accessibilityLabel("更多操作")
                 }
             }
+
+#if !os(macOS)
+            ToolbarItemGroup(placement: .bottomBar) {
+                if viewModel.manga != nil {
+                    Spacer(minLength: 0)
+                    Button {
+                        if let chapter = primaryReadChapter {
+                            activeReaderChapter = chapter
+                        }
+                    } label: {
+                        Label(primaryReadButtonTitle, systemImage: primaryReadButtonSystemImage)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(primaryReadChapter == nil)
+                }
+            }
+#endif
         }
         .sheet(item: $activeSheet) { sheet in
             switch sheet {
