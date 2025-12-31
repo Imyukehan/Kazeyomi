@@ -4,9 +4,9 @@ struct SourcesSection: View {
     @Environment(ServerSettingsStore.self) private var serverSettings
     @State private var viewModel = SourcesViewModel()
 
-    let title: String
+    let title: LocalizedStringKey
 
-    init(title: String = "Sources") {
+    init(title: LocalizedStringKey = "sources.title") {
         self.title = title
     }
 
@@ -14,16 +14,16 @@ struct SourcesSection: View {
         Section(title) {
             if viewModel.isLoading {
                 HStack {
-                    Text("加载中")
+                    Text("common.loading")
                     Spacer()
                     ProgressView()
                 }
             } else if let errorMessage = viewModel.errorMessage {
-                Text("加载失败：\(errorMessage)")
+                Text(String(format: String(localized: "common.load_failed_format"), errorMessage))
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             } else if viewModel.sources.isEmpty {
-                Text("暂无Sources")
+                Text("sources.empty_title")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             } else {
@@ -74,7 +74,7 @@ struct SourcesSection: View {
 
 #Preview {
     List {
-        SourcesSection(title: "Sources")
+        SourcesSection(title: "sources.title")
     }
     .environment(ServerSettingsStore())
 }

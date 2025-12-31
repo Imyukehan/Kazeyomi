@@ -10,11 +10,11 @@ struct SourceSettingsView: View {
         List {
             if viewModel.isLoading && viewModel.preferences.isEmpty {
                 Section {
-                    ProgressView("加载中…")
+                    ProgressView("common.loading")
                 }
             } else if let errorMessage = viewModel.errorMessage {
                 Section {
-                    Text("加载失败：\(errorMessage)")
+                    Text(String(format: String(localized: "common.load_failed_format"), errorMessage))
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
@@ -22,12 +22,12 @@ struct SourceSettingsView: View {
 
             if !viewModel.isConfigurable {
                 Section {
-                    Text("该图源暂无可配置项")
+                    Text("sources.settings.not_configurable")
                         .foregroundStyle(.secondary)
                 }
             } else if viewModel.preferences.isEmpty, !viewModel.isLoading {
                 Section {
-                    Text("暂无设置")
+                    Text("common.no_settings")
                         .foregroundStyle(.secondary)
                 }
             } else {
@@ -36,7 +36,7 @@ struct SourceSettingsView: View {
                 }
             }
         }
-        .navigationTitle(viewModel.displayName.isEmpty ? "设置" : viewModel.displayName)
+        .navigationTitle(viewModel.displayName.isEmpty ? String(localized: "settings.title") : viewModel.displayName)
 #if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .tabBar)
@@ -280,7 +280,7 @@ private struct SourceEditTextPreferenceView: View {
                 if isSaving {
                     ProgressView()
                 } else {
-                    Button("保存") {
+                    Button("action.save") {
                         Task {
                             isSaving = true
                             await onSave(text)
@@ -368,7 +368,7 @@ private struct SourceMultiSelectPreferenceView: View {
                 if isSaving {
                     ProgressView()
                 } else {
-                    Button("保存") {
+                    Button("action.save") {
                         Task {
                             isSaving = true
                             await onSave(Array(selected))

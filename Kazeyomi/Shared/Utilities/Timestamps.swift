@@ -23,8 +23,8 @@ enum Timestamps {
 
     static func relativeDayTitle(from date: Date) -> String {
         let calendar = Calendar.current
-        if calendar.isDateInToday(date) { return "今天" }
-        if calendar.isDateInYesterday(date) { return "昨天" }
+        if calendar.isDateInToday(date) { return String(localized: "timestamps.today") }
+        if calendar.isDateInYesterday(date) { return String(localized: "timestamps.yesterday") }
         let formatter = DateFormatter()
         formatter.locale = .current
         formatter.dateStyle = .medium

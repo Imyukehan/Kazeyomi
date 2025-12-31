@@ -7,11 +7,11 @@ struct MangaCategoriesEditorView: View {
     @State private var viewModel = MangaCategoriesEditorViewModel()
     @Binding private var selectedCategoryIDs: Set<Int>
 
-    let title: String
+    let title: LocalizedStringKey
     let onSave: ([Int]) async -> Void
 
     init(
-        title: String = "编辑分类",
+        title: LocalizedStringKey = "categories.edit_title",
         selectedCategoryIDs: Binding<Set<Int>>,
         onSave: @escaping ([Int]) async -> Void
     ) {
@@ -26,7 +26,7 @@ struct MangaCategoriesEditorView: View {
                 if viewModel.isLoading && viewModel.categories.isEmpty {
                     VStack(spacing: 12) {
                         ProgressView()
-                        Text("加载中…")
+                        Text("common.loading_ellipsis")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
@@ -35,7 +35,7 @@ struct MangaCategoriesEditorView: View {
                     List {
                         if let errorMessage = viewModel.errorMessage {
                             Section {
-                                Text("加载失败：\(errorMessage)")
+                                Text(String(format: String(localized: "common.load_failed_format"), errorMessage))
                                     .font(.footnote)
                                     .foregroundStyle(.secondary)
                             }
@@ -81,7 +81,7 @@ struct MangaCategoriesEditorView: View {
                     .topBarLeading
 #endif
                 }()) {
-                    Button("取消") { dismiss() }
+                        Button("action.cancel") { dismiss() }
                 }
 
                 ToolbarItem(placement: {
@@ -91,7 +91,7 @@ struct MangaCategoriesEditorView: View {
                     .topBarTrailing
 #endif
                 }()) {
-                    Button("保存") {
+                    Button("action.save") {
                         let ids = selectedCategoryIDs
                             .subtracting([0])
                             .sorted()

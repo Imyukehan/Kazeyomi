@@ -6,61 +6,61 @@ struct DownloadsView: View {
 
     var body: some View {
         List {
-            Section("摘要") {
+            Section("downloads.section.summary") {
                 if viewModel.isLoading {
                     HStack {
-                        Text("加载中")
+                        Text("common.loading")
                         Spacer()
                         ProgressView()
                     }
                 } else if let errorMessage = viewModel.errorMessage {
-                    Text("加载失败：\(errorMessage)")
+                    Text(String(format: String(localized: "common.load_failed_format"), errorMessage))
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 } else if let summary = viewModel.summary {
-                    LabeledContent("下载器状态") {
+                    LabeledContent("downloads.label.downloader_status") {
                         Text(summary.state)
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
 
-                    LabeledContent("队列") {
+                    LabeledContent("downloads.label.queue") {
                         Text("\(summary.total)")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
 
-                    LabeledContent("进行中") {
+                    LabeledContent("downloads.label.in_progress") {
                         Text("\(summary.downloading)")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
 
-                    LabeledContent("排队") {
+                    LabeledContent("downloads.label.queued") {
                         Text("\(summary.queued)")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
 
-                    LabeledContent("失败") {
+                    LabeledContent("downloads.label.failed") {
                         Text("\(summary.error)")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
                 } else {
-                    Text("-")
+                    Text("common.placeholder.dash")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
             }
 
             Section {
-                Text("后续：下载队列列表、拖拽排序、开始/停止、下载进度订阅。")
+                Text("downloads.todo_note")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
         }
-        .navigationTitle("下载")
+        .navigationTitle("downloads.title")
         .task(id: TaskKey.serverSettings(
             baseURLString: serverSettings.baseURLString,
             addPort: serverSettings.addPort,

@@ -8,11 +8,19 @@ struct BrowseView: View {
 
         var id: String { rawValue }
 
-        var title: String {
+        var titleKey: LocalizedStringKey {
             switch self {
-            case .sources: return "图源"
-            case .extensions: return "插件"
-            case .migration: return "迁移"
+            case .sources: return "sources.title"
+            case .extensions: return "extensions.title"
+            case .migration: return "migration.title"
+            }
+        }
+
+        var titleString: String {
+            switch self {
+            case .sources: return String(localized: "sources.title")
+            case .extensions: return String(localized: "extensions.title")
+            case .migration: return String(localized: "migration.title")
             }
         }
 
@@ -38,7 +46,9 @@ struct BrowseView: View {
                 BrowseMigrationView()
             }
         }
-        .navigationTitle("浏览 · \(selectedSection.title)")
+        .navigationTitle(
+            String(format: String(localized: "browse.title_with_section_format"), selectedSection.titleString)
+        )
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Menu {
@@ -47,14 +57,14 @@ struct BrowseView: View {
                             selectedSection = section
                         } label: {
                             if selectedSection == section {
-                                Label(section.title, systemImage: "checkmark")
+                                Label(section.titleKey, systemImage: "checkmark")
                             } else {
-                                Label(section.title, systemImage: section.systemImage)
+                                Label(section.titleKey, systemImage: section.systemImage)
                             }
                         }
                     }
                 } label: {
-                    Label(selectedSection.title, systemImage: "line.3.horizontal.decrease.circle")
+                    Label(selectedSection.titleKey, systemImage: "line.3.horizontal.decrease.circle")
                 }
             }
         }

@@ -12,15 +12,15 @@ struct CategoryMangaListView: View {
                 ProgressView()
             } else if let errorMessage = viewModel.errorMessage {
                 ContentUnavailableView {
-                    Label("加载失败", systemImage: "exclamationmark.triangle")
+                    Label("common.load_failed", systemImage: "exclamationmark.triangle")
                 } description: {
                     Text(errorMessage)
                 }
             } else if viewModel.mangas.isEmpty {
                 ContentUnavailableView {
-                    Label("暂无漫画", systemImage: "books.vertical")
+                    Label("library.empty_manga_title", systemImage: "books.vertical")
                 } description: {
-                    Text("该分类下没有漫画，或需要先在服务端添加到书库")
+                    Text("library.empty_manga_message")
                 }
             } else {
                 List(viewModel.mangas, id: \.id) { manga in
@@ -78,7 +78,7 @@ struct CategoryMangaListView: View {
 
 #Preview {
     NavigationStack {
-        CategoryMangaListView(category: Category(id: 1, name: "示例分类", order: 0, isDefault: true))
+        CategoryMangaListView(category: Category(id: 1, name: "Example Category", order: 0, isDefault: true))
     }
     .environment(ServerSettingsStore())
 }

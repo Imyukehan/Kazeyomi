@@ -8,7 +8,7 @@ extension TachideskAPI {
     static let operationName: String = "ReadingHistory"
     static let operationDocument: ApolloAPI.OperationDocument = .init(
       definition: .init(
-        #"query ReadingHistory($first: Int!, $offset: Int!) { chapters( first: $first offset: $offset filter: { inLibrary: { equalTo: true } lastReadAt: { isNull: false, greaterThan: "0" } or: [{ isRead: { equalTo: true } }, { lastPageRead: { greaterThan: 0 } }] } order: [{ by: LAST_READ_AT, byType: DESC }, { by: SOURCE_ORDER, byType: DESC }] ) { __typename nodes { __typename id name mangaId lastReadAt isRead lastPageRead isDownloaded scanlator manga { __typename id title thumbnailUrl unreadCount } } pageInfo { __typename hasNextPage hasPreviousPage startCursor endCursor } totalCount } }"#
+        #"query ReadingHistory($first: Int!, $offset: Int!) { chapters( first: $first offset: $offset filter: { lastReadAt: { isNull: false, greaterThan: "0" } or: [{ isRead: { equalTo: true } }, { lastPageRead: { greaterThan: 0 } }] } order: [{ by: LAST_READ_AT, byType: DESC }, { by: SOURCE_ORDER, byType: DESC }] ) { __typename nodes { __typename id name mangaId lastReadAt isRead lastPageRead isDownloaded scanlator manga { __typename id title thumbnailUrl unreadCount inLibrary } } pageInfo { __typename hasNextPage hasPreviousPage startCursor endCursor } totalCount } }"#
       ))
 
     public var first: Int
@@ -37,7 +37,6 @@ extension TachideskAPI {
           "first": .variable("first"),
           "offset": .variable("offset"),
           "filter": [
-            "inLibrary": ["equalTo": true],
             "lastReadAt": [
               "isNull": false,
               "greaterThan": "0"
@@ -129,6 +128,7 @@ extension TachideskAPI {
               .field("title", String.self),
               .field("thumbnailUrl", String?.self),
               .field("unreadCount", Int.self),
+              .field("inLibrary", Bool.self),
             ] }
             static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
               ReadingHistoryQuery.Data.Chapters.Node.Manga.self
@@ -138,6 +138,7 @@ extension TachideskAPI {
             var title: String { __data["title"] }
             var thumbnailUrl: String? { __data["thumbnailUrl"] }
             var unreadCount: Int { __data["unreadCount"] }
+            var inLibrary: Bool { __data["inLibrary"] }
           }
         }
 

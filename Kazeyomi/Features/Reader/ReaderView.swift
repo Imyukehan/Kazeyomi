@@ -10,12 +10,12 @@ struct ReaderView: View {
 
         var id: String { rawValue }
 
-        var title: String {
+        var titleKey: LocalizedStringKey {
             switch self {
             case .paged:
-                return "分页"
+                return "reader.mode.paged"
             case .strip:
-                return "条漫"
+                return "reader.mode.strip"
             }
         }
     }
@@ -26,12 +26,12 @@ struct ReaderView: View {
 
         var id: String { rawValue }
 
-        var title: String {
+        var titleKey: LocalizedStringKey {
             switch self {
             case .leftToRight:
-                return "从左到右"
+                return "reader.reading_direction.left_to_right"
             case .rightToLeft:
-                return "从右到左"
+                return "reader.reading_direction.right_to_left"
             }
         }
     }
@@ -56,18 +56,18 @@ struct ReaderView: View {
 
             Group {
                 if viewModel.isLoading && viewModel.pages.isEmpty {
-                    ProgressView("加载中…")
+                    ProgressView("common.loading")
                 } else if let errorMessage = viewModel.errorMessage {
                     ContentUnavailableView {
-                        Label("加载失败", systemImage: "exclamationmark.triangle")
+                        Label("common.load_failed", systemImage: "exclamationmark.triangle")
                     } description: {
                         Text(errorMessage)
                     }
                 } else if viewModel.pages.isEmpty {
                     ContentUnavailableView {
-                        Label("暂无页面", systemImage: "doc.plaintext")
+                        Label("reader.pages.empty_title", systemImage: "doc.plaintext")
                     } description: {
-                        Text("服务端未返回页面列表")
+                        Text("reader.pages.empty_message")
                     }
                 } else {
                     contentView(pages: viewModel.pages)
@@ -85,19 +85,19 @@ struct ReaderView: View {
             if isChromeVisible {
                 ToolbarItem(placement: .primaryAction) {
                     Menu {
-                        Picker("浏览模式", selection: $readerModeRawValue) {
+                        Picker("reader.mode.title", selection: $readerModeRawValue) {
                             ForEach(ReaderMode.allCases) { mode in
-                                Text(mode.title).tag(mode.rawValue)
+                                Text(mode.titleKey).tag(mode.rawValue)
                             }
                         }
 
-                        Picker("阅读方向", selection: $readingDirectionRawValue) {
+                        Picker("reader.reading_direction.title", selection: $readingDirectionRawValue) {
                             ForEach(ReadingDirection.allCases) { dir in
-                                Text(dir.title).tag(dir.rawValue)
+                                Text(dir.titleKey).tag(dir.rawValue)
                             }
                         }
 
-                        Toggle("双页", isOn: $isDoublePageEnabled)
+                        Toggle("reader.double_page", isOn: $isDoublePageEnabled)
                             .disabled(readerMode != .paged)
                     } label: {
                         Image(systemName: "gearshape")
@@ -314,7 +314,7 @@ private struct ReaderPageImage: View {
                 }
             } else {
                 VStack(spacing: 8) {
-                    Text("无法解析页面 URL")
+                        Text("reader.page.invalid_url")
                         .foregroundStyle(.secondary)
                     Text(page)
                         .font(.footnote)
@@ -371,7 +371,7 @@ private struct ReaderPageImage: View {
 
 #Preview {
     NavigationStack {
-        ReaderView(chapterID: 1, title: "示例章节")
+        ReaderView(chapterID: 1, title: "Example Chapter")
             .environment(ServerSettingsStore())
     }
 }

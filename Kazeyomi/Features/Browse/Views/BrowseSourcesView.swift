@@ -41,15 +41,15 @@ struct BrowseSourcesView: View {
                 ProgressView()
             } else if let errorMessage = viewModel.errorMessage, viewModel.sources.isEmpty {
                 ContentUnavailableView {
-                    Label("加载失败", systemImage: "exclamationmark.triangle")
+                    Label("common.load_failed", systemImage: "exclamationmark.triangle")
                 } description: {
                     Text(errorMessage)
                 }
             } else if filteredSources.isEmpty {
                 ContentUnavailableView {
-                    Label("暂无图源", systemImage: "square.stack.3d.up")
+                    Label("sources.empty_title", systemImage: "square.stack.3d.up")
                 } description: {
-                    Text("当前语言下没有可用图源")
+                    Text("sources.empty_message_no_language")
                 }
             } else {
                 List(filteredSources) { source in
@@ -98,7 +98,7 @@ struct BrowseSourcesView: View {
                 }
             }
         }
-        .navigationTitle("图源")
+        .navigationTitle("sources.title")
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
                 Button {
@@ -188,7 +188,7 @@ private struct LanguagePickerSheet: View {
                     }
                 }
             }
-            .navigationTitle("语言")
+            .navigationTitle("browse.language.title")
 #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
 #endif
@@ -200,7 +200,7 @@ private struct LanguagePickerSheet: View {
                     .topBarTrailing
 #endif
                 }()) {
-                    Button("完成") { dismiss() }
+                    Button("action.done") { dismiss() }
                 }
             }
         }

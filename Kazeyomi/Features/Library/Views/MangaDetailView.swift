@@ -46,8 +46,8 @@ struct MangaDetailView: View {
         hasStartedReading ? continueChapter : startChapter
     }
 
-    private var primaryReadButtonTitle: String {
-        hasStartedReading ? "继续阅读" : "开始阅读"
+    private var primaryReadButtonTitle: LocalizedStringKey {
+        hasStartedReading ? "manga.read.continue" : "manga.read.start"
     }
 
     private var primaryReadButtonSystemImage: String {
@@ -58,11 +58,11 @@ struct MangaDetailView: View {
         List {
             if viewModel.isLoading && viewModel.manga == nil {
                 Section {
-                    ProgressView("加载中…")
+                    ProgressView("common.loading_ellipsis")
                 }
             } else if let errorMessage = viewModel.errorMessage {
                 Section {
-                    Text("加载失败：\(errorMessage)")
+                    Text(String(format: String(localized: "common.load_failed_format"), errorMessage))
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
@@ -106,7 +106,7 @@ struct MangaDetailView: View {
                                     .foregroundStyle(.secondary)
 
                                 if manga.unreadCount > 0 {
-                                    Text("未读 \(manga.unreadCount)")
+                                    Text(String(format: String(localized: "manga.unread_count_format"), manga.unreadCount))
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
@@ -140,15 +140,15 @@ struct MangaDetailView: View {
                 }
 
                 if let description = manga.description, !description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    Section("简介") {
+                    Section("manga.section.description") {
                         Text(description)
                             .font(.body)
                     }
                 }
 
-                Section("章节") {
+                Section("manga.section.chapters") {
                     if viewModel.chapters.isEmpty {
-                        Text("暂无章节")
+                        Text("manga.no_chapters")
                             .foregroundStyle(.secondary)
                     } else {
                         ForEach(viewModel.chapters) { chapter in
@@ -191,7 +191,7 @@ struct MangaDetailView: View {
                 }
             }
         }
-        .navigationTitle(viewModel.manga?.title ?? "详情")
+            .navigationTitle(viewModel.manga?.title ?? String(localized: "manga.detail_title"))
 #if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .tabBar)
@@ -222,7 +222,7 @@ struct MangaDetailView: View {
                             Button {
                                 Task { await viewModel.toggleInLibrary(serverSettings: serverSettings, mangaID: mangaID) }
                             } label: {
-                                Label("移出书架", systemImage: "bookmark.slash")
+                                Label("manga.action.remove_from_library", systemImage: "bookmark.slash")
                             }
                             .disabled(viewModel.isUpdatingLibrary)
                         } else {
@@ -230,7 +230,7 @@ struct MangaDetailView: View {
                                 categoryEditorSelection = []
                                 activeSheet = .addToLibrary
                             } label: {
-                                Label("添加到书架", systemImage: "bookmark")
+                                Label("manga.action.add_to_library", systemImage: "bookmark")
                             }
                             .disabled(viewModel.isUpdatingLibrary || viewModel.isUpdatingCategories)
                         }
@@ -241,20 +241,20 @@ struct MangaDetailView: View {
                             categoryEditorSelection = Set(ids).subtracting([0])
                             activeSheet = .editCategories
                         } label: {
-                            Label("编辑分类", systemImage: "folder")
+                            Label("manga.action.edit_categories", systemImage: "folder")
                         }
                         .disabled(viewModel.isUpdatingCategories)
 
                         Button {
                             openInBrowser()
                         } label: {
-                            Label("在浏览器打开", systemImage: "safari")
+                            Label("manga.action.open_in_browser", systemImage: "safari")
                         }
                         .disabled(viewModel.browserURLString == nil)
                     } label: {
                         Image(systemName: "ellipsis.circle")
                     }
-                    .accessibilityLabel("更多操作")
+                    .accessibilityLabel("manga.menu.more")
                 }
             }
 
@@ -279,7 +279,7 @@ struct MangaDetailView: View {
             switch sheet {
             case .addToLibrary:
                 MangaCategoriesEditorView(
-                    title: "添加到书架",
+                    title: "categories.add_to_library_title",
                     selectedCategoryIDs: $categoryEditorSelection
                 ) { _ in
                     let effectiveIDs = categoryEditorSelection.subtracting([0]).sorted()

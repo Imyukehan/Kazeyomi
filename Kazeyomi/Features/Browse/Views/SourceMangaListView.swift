@@ -13,15 +13,15 @@ struct SourceMangaListView: View {
                 ProgressView()
             } else if let errorMessage = viewModel.errorMessage, viewModel.mangas.isEmpty {
                 ContentUnavailableView {
-                    Label("加载失败", systemImage: "exclamationmark.triangle")
+                    Label("common.load_failed", systemImage: "exclamationmark.triangle")
                 } description: {
                     Text(errorMessage)
                 }
             } else if viewModel.mangas.isEmpty {
                 ContentUnavailableView {
-                    Label("暂无漫画", systemImage: "books.vertical")
+                    Label("browse.manga.empty_title", systemImage: "books.vertical")
                 } description: {
-                    Text("该图源暂无可展示的漫画")
+                    Text("browse.manga.empty_message")
                 }
             } else {
                 List {
@@ -72,7 +72,7 @@ struct SourceMangaListView: View {
                                 if viewModel.isLoading {
                                     ProgressView()
                                 } else {
-                                    Text("加载更多")
+                                    Text("common.load_more")
                                 }
                                 Spacer()
                             }
@@ -98,10 +98,10 @@ struct SourceMangaListView: View {
                 } label: {
                     Image(systemName: "gear")
                 }
-                .accessibilityLabel("设置")
+                .accessibilityLabel("action.settings")
             }
         }
-        .searchable(text: $searchText, placement: .toolbar, prompt: "搜索")
+        .searchable(text: $searchText, placement: .toolbar, prompt: "common.search_placeholder")
         .onSubmit(of: .search) {
             Task { await viewModel.search(serverSettings: serverSettings, sourceID: source.id, query: searchText) }
         }
@@ -128,7 +128,7 @@ struct SourceMangaListView: View {
             source: Source(
                 id: "1",
                 name: "source",
-                displayName: "示例图源",
+                displayName: "Example Source",
                 lang: "en",
                 iconUrl: "",
                 isNsfw: false,

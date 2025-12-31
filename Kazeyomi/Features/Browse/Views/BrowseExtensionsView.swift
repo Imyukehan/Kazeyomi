@@ -61,11 +61,11 @@ struct BrowseExtensionsView: View {
             .sorted { $0.name.localizedCompare($1.name) == .orderedAscending }
     }
 
-    private func actionTitle(for ext: ExtensionPackage) -> String {
+    private func actionTitleKey(for ext: ExtensionPackage) -> LocalizedStringKey {
         if ext.isInstalled {
-            return ext.hasUpdate ? "更新" : "卸载"
+            return ext.hasUpdate ? "extensions.action.update" : "extensions.action.uninstall"
         }
-        return "安装"
+        return "extensions.action.install"
     }
 
     private func action(for ext: ExtensionPackage) -> ExtensionUpdateAction {
@@ -110,7 +110,7 @@ struct BrowseExtensionsView: View {
                 if ext.isObsolete || ext.isNsfw {
                     HStack(spacing: 6) {
                         if ext.isObsolete {
-                            Text("已废弃")
+                            Text("extensions.label.deprecated")
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)
                         }
@@ -133,7 +133,7 @@ struct BrowseExtensionsView: View {
                 if viewModel.isActive(pkgName: ext.pkgName) {
                     ProgressView()
                 } else {
-                    Text(actionTitle(for: ext))
+                        Text(actionTitleKey(for: ext))
                 }
             }
             .buttonStyle(.bordered)
@@ -150,36 +150,36 @@ struct BrowseExtensionsView: View {
                 ProgressView()
             } else if let errorMessage = viewModel.errorMessage, viewModel.extensions.isEmpty {
                 ContentUnavailableView {
-                    Label("加载失败", systemImage: "exclamationmark.triangle")
+                    Label("common.load_failed", systemImage: "exclamationmark.triangle")
                 } description: {
                     Text(errorMessage)
                 }
             } else if !hasAnyResults {
                 ContentUnavailableView {
-                    Label("暂无插件", systemImage: "puzzlepiece.extension")
+                    Label("extensions.empty_title", systemImage: "puzzlepiece.extension")
                 } description: {
                     if !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        Text("没有匹配的插件")
+                        Text("extensions.search.no_matches")
                     } else if viewModel.extensions.isEmpty {
-                        Text("未获取到插件列表")
+                        Text("extensions.empty_message_failed_to_load")
                     } else if enabledLanguages.isEmpty {
-                        Text("当前语言下没有可用插件")
+                        Text("extensions.empty_message_no_language")
                     } else {
-                        Text("暂无插件")
+                        Text("extensions.empty_title")
                     }
                 }
             } else {
                 List {
                     if isShowingSearch {
                         Section {
-                            TextField("搜索", text: $searchText)
+                            TextField("common.search_placeholder", text: $searchText)
                                 .textFieldStyle(.roundedBorder)
                                 .focused($isSearchFieldFocused)
                         }
                     }
 
                     if !updateExtensions.isEmpty {
-                        Section("可更新") {
+                        Section("extensions.section.updatable") {
                             ForEach(updateExtensions) { ext in
                                 row(for: ext)
                             }
@@ -187,7 +187,7 @@ struct BrowseExtensionsView: View {
                     }
 
                     if !installedExtensions.isEmpty {
-                        Section("已安装") {
+                        Section("extensions.section.installed") {
                             ForEach(installedExtensions) { ext in
                                 row(for: ext)
                             }
@@ -195,7 +195,7 @@ struct BrowseExtensionsView: View {
                     }
 
                     if !availableExtensions.isEmpty {
-                        Section("可用") {
+                        Section("extensions.section.available") {
                             ForEach(availableExtensions) { ext in
                                 row(for: ext)
                             }
@@ -204,7 +204,7 @@ struct BrowseExtensionsView: View {
                 }
             }
         }
-        .navigationTitle("插件")
+        .navigationTitle("extensions.title")
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
                 Button {
@@ -299,7 +299,7 @@ private struct LanguagePickerSheet: View {
                     }
                 }
             }
-            .navigationTitle("语言")
+            .navigationTitle("browse.language.title")
 #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
 #endif
@@ -311,7 +311,7 @@ private struct LanguagePickerSheet: View {
                     .topBarTrailing
 #endif
                 }()) {
-                    Button("完成") { dismiss() }
+                    Button("action.done") { dismiss() }
                 }
             }
         }

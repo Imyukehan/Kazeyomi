@@ -17,15 +17,15 @@ struct LibraryView: View {
                 ProgressView()
             } else if let errorMessage = viewModel.errorMessage, viewModel.categories.isEmpty {
                 ContentUnavailableView {
-                    Label("加载失败", systemImage: "exclamationmark.triangle")
+                    Label("common.load_failed", systemImage: "exclamationmark.triangle")
                 } description: {
                     Text(errorMessage)
                 }
             } else if viewModel.categories.isEmpty {
                 ContentUnavailableView {
-                    Label("暂无书库内容", systemImage: "books.vertical")
+                    Label("library.empty_title", systemImage: "books.vertical")
                 } description: {
-                    Text("请先在服务端创建分类或将漫画加入书库")
+                    Text("library.empty_message")
                 }
             } else {
                 Group {
@@ -33,15 +33,15 @@ struct LibraryView: View {
                         ProgressView()
                     } else if let errorMessage = mangaListViewModel.errorMessage {
                         ContentUnavailableView {
-                            Label("加载失败", systemImage: "exclamationmark.triangle")
+                            Label("common.load_failed", systemImage: "exclamationmark.triangle")
                         } description: {
                             Text(errorMessage)
                         }
                     } else if mangaListViewModel.mangas.isEmpty {
                         ContentUnavailableView {
-                            Label("暂无漫画", systemImage: "books.vertical")
+                            Label("library.empty_manga_title", systemImage: "books.vertical")
                         } description: {
-                            Text("当前分类下没有漫画，或需要先在服务端添加到书库")
+                            Text("library.empty_manga_message")
                         }
                     } else {
                         List(mangaListViewModel.mangas, id: \.id) { manga in
@@ -83,7 +83,11 @@ struct LibraryView: View {
                 }
             }
         }
-        .navigationTitle(selectedCategory.map { "书库 · \($0.name)" } ?? "书库")
+        .navigationTitle(
+            selectedCategory
+                .map { String(format: String(localized: "library.title_with_category_format"), $0.name) }
+                ?? String(localized: "library.title")
+        )
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Menu {
@@ -99,7 +103,7 @@ struct LibraryView: View {
                         }
                     }
                 } label: {
-                    Label(selectedCategory?.name ?? "分类", systemImage: "line.3.horizontal.decrease.circle")
+                    Label(selectedCategory?.name ?? String(localized: "library.category_menu"), systemImage: "line.3.horizontal.decrease.circle")
                 }
                 .disabled(viewModel.categories.isEmpty)
             }

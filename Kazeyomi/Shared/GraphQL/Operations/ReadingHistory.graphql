@@ -3,7 +3,6 @@ query ReadingHistory($first: Int!, $offset: Int!) {
     first: $first
     offset: $offset
     filter: {
-      inLibrary: { equalTo: true }
       lastReadAt: { isNull: false, greaterThan: "0" }
       or: [{ isRead: { equalTo: true } }, { lastPageRead: { greaterThan: 0 } }]
     }
@@ -23,6 +22,7 @@ query ReadingHistory($first: Int!, $offset: Int!) {
         title
         thumbnailUrl
         unreadCount
+        inLibrary
       }
     }
     pageInfo {

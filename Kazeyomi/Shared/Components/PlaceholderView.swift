@@ -1,26 +1,26 @@
 import SwiftUI
 
 struct PlaceholderView: View {
-    let title: String
-    let description: String
+    let titleKey: LocalizedStringKey
+    let descriptionKey: LocalizedStringKey
 
-    init(_ title: String, description: String) {
-        self.title = title
-        self.description = description
+    init(_ titleKey: LocalizedStringKey, description descriptionKey: LocalizedStringKey) {
+        self.titleKey = titleKey
+        self.descriptionKey = descriptionKey
     }
 
     var body: some View {
         ContentUnavailableView {
-            Label(title, systemImage: "globe")
+            Label(titleKey, systemImage: "globe")
         } description: {
-            Text(description)
+            Text(descriptionKey)
         }
-        .navigationTitle(title)
+        .navigationTitle(titleKey)
     }
 }
 
 #Preview {
     NavigationStack {
-        PlaceholderView("示例", description: "这里将逐步替换为真实功能")
+        PlaceholderView("placeholder.example.title", description: "placeholder.example.description")
     }
 }

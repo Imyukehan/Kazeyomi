@@ -50,7 +50,7 @@ struct MangaCardView: View {
 
 #Preview {
     MangaCardView(
-        title: "示例漫画标题示例漫画标题",
+        title: "Example Manga Title",
         thumbnailURL: nil,
         authorization: nil
     )

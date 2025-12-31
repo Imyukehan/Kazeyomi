@@ -81,7 +81,7 @@ struct UpdatesView: View {
             result.append(
                 SectionGroup(
                     id: "unknown",
-                    title: "未知日期",
+                    title: String(localized: "common.unknown_date"),
                     sortDate: nil,
                     items: unknown
                 )
@@ -95,11 +95,11 @@ struct UpdatesView: View {
         List {
             if viewModel.isLoading && viewModel.items.isEmpty {
                 Section {
-                    ProgressView("加载中…")
+                    ProgressView("common.loading")
                 }
             } else if viewModel.items.isEmpty {
                 Section {
-                    Text("暂无更新")
+                    Text("updates.empty_title")
                         .foregroundStyle(.secondary)
                 }
             } else {
@@ -134,7 +134,13 @@ struct UpdatesView: View {
                                                 .foregroundStyle(.secondary)
                                                 .lineLimit(2)
                                         } else {
-                                            Text("\(item.latestChapterName) · 等\(item.chapterCount)章更新")
+                                            Text(
+                                                String(
+                                                    format: String(localized: "updates.latest_and_more_format"),
+                                                    item.latestChapterName,
+                                                    Int64(item.chapterCount)
+                                                )
+                                            )
                                                 .font(.subheadline)
                                                 .foregroundStyle(.secondary)
                                                 .lineLimit(2)
@@ -151,13 +157,13 @@ struct UpdatesView: View {
                         }
 
                         if viewModel.isLoading && !viewModel.items.isEmpty {
-                            ProgressView("加载更多…")
+                            ProgressView("common.loading_more")
                         }
                     }
                 }
             }
         }
-        .navigationTitle("更新")
+        .navigationTitle("updates.title")
         .refreshable {
             await viewModel.refresh(serverSettings: serverSettings)
         }

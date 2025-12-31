@@ -6,52 +6,52 @@ struct SettingsView: View {
             NavigationLink {
                 GeneralSettingsView()
             } label: {
-                Label("通用", systemImage: "tune")
+                Label("settings.general.title", systemImage: "tune")
             }
 
             NavigationLink {
                 AppearanceSettingsView()
             } label: {
-                Label("外观", systemImage: "paintpalette")
+                Label("settings.appearance.title", systemImage: "paintpalette")
             }
 
             NavigationLink {
                 LibrarySettingsView()
             } label: {
-                Label("书库", systemImage: "books.vertical")
+                Label("settings.library.title", systemImage: "books.vertical")
             }
 
             NavigationLink {
                 DownloadsSettingsView()
             } label: {
-                Label("下载", systemImage: "arrow.down.circle")
+                Label("settings.downloads.title", systemImage: "arrow.down.circle")
             }
 
             NavigationLink {
                 ReaderSettingsView()
             } label: {
-                Label("阅读器", systemImage: "doc.text.magnifyingglass")
+                Label("settings.reader.title", systemImage: "doc.text.magnifyingglass")
             }
 
             NavigationLink {
                 BrowseSettingsView()
             } label: {
-                Label("浏览", systemImage: "safari")
+                Label("settings.browse.title", systemImage: "safari")
             }
 
             NavigationLink {
                 BackupSettingsView()
             } label: {
-                Label("备份", systemImage: "externaldrive")
+                Label("settings.backup.title", systemImage: "externaldrive")
             }
 
             NavigationLink {
                 ServerSettingsView()
             } label: {
-                Label("服务器", systemImage: "server.rack")
+                Label("settings.server.title", systemImage: "server.rack")
             }
         }
-        .navigationTitle("设置")
+        .navigationTitle("settings.title")
     }
 }
 

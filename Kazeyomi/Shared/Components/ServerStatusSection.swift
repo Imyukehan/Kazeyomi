@@ -8,7 +8,7 @@ struct ServerStatusSection: View {
     @State private var isError = false
 
     var body: some View {
-        Section("服务端") {
+        Section("server.status.section_title") {
             LabeledContent("GraphQL Endpoint") {
                 Text(endpointDisplay)
                     .font(.footnote)
@@ -47,8 +47,8 @@ struct ServerStatusSection: View {
     }
 
     private var statusTitle: String {
-        if isLoading { return "连接检测中" }
-        return isError ? "连接异常" : "已连接"
+        if isLoading { return String(localized: "server.status.checking") }
+        return isError ? String(localized: "server.status.error") : String(localized: "server.status.connected")
     }
 
     private var statusIcon: String {

@@ -12,14 +12,14 @@ struct AppRootView: View {
 
         var id: String { rawValue }
 
-        var title: String {
+        var title: LocalizedStringKey {
             switch self {
-            case .library: return "书库"
-            case .browse: return "浏览"
-            case .updates: return "更新"
-            case .history: return "历史"
-            case .downloads: return "下载"
-            case .settings: return "设置"
+            case .library: return "tab.library"
+            case .browse: return "tab.browse"
+            case .updates: return "tab.updates"
+            case .history: return "tab.history"
+            case .downloads: return "tab.downloads"
+            case .settings: return "tab.settings"
             }
         }
 
@@ -72,42 +72,42 @@ struct AppRootView: View {
                 LibraryView()
             }
             .tabItem {
-                Label("书库", systemImage: "books.vertical")
+                Label("tab.library", systemImage: "books.vertical")
             }
 
             NavigationStack {
                 BrowseView()
             }
             .tabItem {
-                Label("浏览", systemImage: "safari")
+                Label("tab.browse", systemImage: "safari")
             }
 
             NavigationStack {
                 UpdatesView()
             }
             .tabItem {
-                Label("更新", systemImage: "arrow.triangle.2.circlepath")
+                Label("tab.updates", systemImage: "arrow.triangle.2.circlepath")
             }
 
             NavigationStack {
                 HistoryView()
             }
             .tabItem {
-                Label("历史", systemImage: "clock")
+                Label("tab.history", systemImage: "clock")
             }
 
             NavigationStack {
                 DownloadsView()
             }
             .tabItem {
-                Label("下载", systemImage: "arrow.down.circle")
+                Label("tab.downloads", systemImage: "arrow.down.circle")
             }
 
             NavigationStack {
                 SettingsView()
             }
             .tabItem {
-                Label("设置", systemImage: "gearshape")
+                Label("tab.settings", systemImage: "gearshape")
             }
         }
         #endif

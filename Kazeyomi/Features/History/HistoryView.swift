@@ -55,7 +55,7 @@ struct HistoryView: View {
             result.append(
                 SectionGroup(
                     id: "unknown",
-                    title: "未知日期",
+                    title: String(localized: "history.unknown_date"),
                     sortDate: nil,
                     items: unknown
                 )
@@ -69,17 +69,17 @@ struct HistoryView: View {
         List {
             if viewModel.isLoading && viewModel.items.isEmpty {
                 Section {
-                    ProgressView("加载中…")
+                    ProgressView("common.loading")
                 }
             } else if let errorMessage = viewModel.errorMessage {
                 Section {
-                    Text("加载失败：\(errorMessage)")
+                    Text(String(format: String(localized: "common.load_failed_format"), errorMessage))
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
             } else if filteredItems.isEmpty {
                 Section {
-                    Text(searchText.isEmpty ? "暂无历史" : "没有匹配结果")
+                    Text(searchText.isEmpty ? "history.empty_title" : "history.search.no_results")
                         .foregroundStyle(.secondary)
                 }
             } else {
@@ -104,9 +104,23 @@ struct HistoryView: View {
                                     .clipShape(RoundedRectangle(cornerRadius: 6))
 
                                     VStack(alignment: .leading, spacing: 4) {
-                                        Text(item.manga.title)
-                                            .font(.headline)
-                                            .lineLimit(1)
+                                        HStack(spacing: 8) {
+                                            Text(item.manga.title)
+                                                .font(.headline)
+                                                .lineLimit(1)
+
+                                            if item.manga.inLibrary == false {
+                                                Text("history.badge.not_in_library")
+                                                    .font(.caption2)
+                                                    .foregroundStyle(.secondary)
+                                                    .padding(.horizontal, 6)
+                                                    .padding(.vertical, 2)
+                                                    .background(.quaternary)
+                                                    .clipShape(Capsule())
+                                            }
+
+                                            Spacer(minLength: 0)
+                                        }
 
                                         Text(item.name ?? "-")
                                             .font(.subheadline)
@@ -124,7 +138,7 @@ struct HistoryView: View {
                                         )
                                     }
                                 } label: {
-                                    Text("移除")
+                                    Text("action.remove")
                                 }
                             }
                         }
@@ -132,8 +146,8 @@ struct HistoryView: View {
                 }
             }
         }
-        .navigationTitle("历史")
-        .searchable(text: $searchText, prompt: "搜索")
+        .navigationTitle("history.title")
+        .searchable(text: $searchText, prompt: "common.search_placeholder")
         .refreshable {
             await viewModel.refresh(serverSettings: serverSettings)
         }

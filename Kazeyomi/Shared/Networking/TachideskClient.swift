@@ -46,7 +46,7 @@ enum TachideskClientError: LocalizedError {
         case .graphQLErrors(let messages):
             return messages.first
         case .missingData:
-            return "GraphQL 响应缺少 data"
+            return String(localized: "error.graphql.missing_data")
         }
     }
 }
@@ -79,7 +79,9 @@ final class TachideskClient {
                 .compactMap { $0.message as String? }
                 .filter { !$0.isEmpty }
 
-            throw TachideskClientError.graphQLErrors(messages.isEmpty ? ["GraphQL 请求失败"] : messages)
+            throw TachideskClientError.graphQLErrors(
+                messages.isEmpty ? [String(localized: "error.graphql.request_failed")] : messages
+            )
         }
         guard let data = result.data else {
             throw TachideskClientError.missingData
@@ -437,7 +439,8 @@ final class TachideskClient {
                     id: node.manga.id,
                     title: node.manga.title,
                     thumbnailUrl: node.manga.thumbnailUrl,
-                    unreadCount: node.manga.unreadCount
+                    unreadCount: node.manga.unreadCount,
+                    inLibrary: nil
                 )
             )
         }
@@ -464,7 +467,8 @@ final class TachideskClient {
                     id: node.manga.id,
                     title: node.manga.title,
                     thumbnailUrl: node.manga.thumbnailUrl,
-                    unreadCount: node.manga.unreadCount
+                    unreadCount: node.manga.unreadCount,
+                    inLibrary: node.manga.inLibrary
                 )
             )
         }

@@ -8,18 +8,18 @@ struct ServerSettingsView: View {
 
     @ViewBuilder
     private var formContent: some View {
-        Section("服务器") {
-            TextField("Base URL", text: Bindable(serverSettings).baseURLString)
+        Section("server.section.server") {
+            TextField("server.base_url", text: Bindable(serverSettings).baseURLString)
             #if !os(macOS)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
             #endif
 
-            Toggle("添加端口", isOn: Bindable(serverSettings).addPort)
+            Toggle("server.add_port", isOn: Bindable(serverSettings).addPort)
 
             Stepper(value: Bindable(serverSettings).port, in: 1...65535) {
                 HStack {
-                    Text("端口")
+                    Text("server.port")
                     Spacer()
                     Text("\(serverSettings.port)")
                         .foregroundStyle(.secondary)
@@ -27,17 +27,17 @@ struct ServerSettingsView: View {
             }
         }
 
-        Section("认证") {
-            Toggle("Basic Auth", isOn: Bindable(serverSettings).useBasicAuth)
+        Section("server.section.auth") {
+            Toggle("server.auth.basic", isOn: Bindable(serverSettings).useBasicAuth)
 
-            TextField("用户名", text: Bindable(serverSettings).username)
+            TextField("server.auth.username", text: Bindable(serverSettings).username)
             #if !os(macOS)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
             #endif
                 .disabled(!serverSettings.useBasicAuth)
 
-            SecureField("密码", text: Bindable(serverSettings).password)
+            SecureField("server.auth.password", text: Bindable(serverSettings).password)
                 .disabled(!serverSettings.useBasicAuth)
         }
 
@@ -46,7 +46,7 @@ struct ServerSettingsView: View {
                 Task { await testConnection() }
             } label: {
                 HStack {
-                    Text("测试连接")
+                    Text("server.test_connection")
                     Spacer()
                     if isTesting {
                         ProgressView()
@@ -74,12 +74,12 @@ struct ServerSettingsView: View {
             .frame(maxWidth: .infinity, alignment: .topLeading)
             .padding()
         }
-        .navigationTitle("服务器设置")
+            .navigationTitle("server.settings.title")
         #else
         Form {
             formContent
         }
-        .navigationTitle("服务器设置")
+            .navigationTitle("server.settings.title")
         #endif
     }
 
@@ -91,9 +91,17 @@ struct ServerSettingsView: View {
         do {
             let client = TachideskClient(serverSettings: serverSettings)
             let about = try await client.aboutServer()
-            testMessage = "✅ \(about.name) \(about.version) (\(about.buildType))"
+            testMessage = String(
+                format: String(localized: "server.test.success_format"),
+                about.name,
+                about.version,
+                about.buildType
+            )
         } catch {
-            testMessage = "❌ 连接失败：\(error.localizedDescription)"
+            testMessage = String(
+                format: String(localized: "server.test.failure_format"),
+                error.localizedDescription
+            )
         }
     }
 }

@@ -5,4 +5,5 @@ struct MangaBase: Identifiable, Decodable, Hashable {
     let title: String
     let thumbnailUrl: String?
     let unreadCount: Int?
+    let inLibrary: Bool?
 }
