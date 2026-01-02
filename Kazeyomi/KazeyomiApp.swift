@@ -13,7 +13,7 @@ struct KazeyomiApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            AppRootView()
                 .environment(serverSettings)
         }
     }
