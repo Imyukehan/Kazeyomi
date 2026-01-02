@@ -2,6 +2,8 @@
 
 Kazeyomi is a Suwayomi client built with SwiftUI.
 
+**IMPORTANT** This project is under construction and not ready to build!
+
 ## Screenshots
 
 (iPhone / iPad / macOS screenshots or GIFs)
