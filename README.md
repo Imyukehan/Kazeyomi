@@ -1,53 +1,39 @@
 # Kazeyomi
 
-Kazeyomi is a Tachidesk/Suwayomi client built with **SwiftUI** (work in progress).
+Kazeyomi is a Suwayomi client built with SwiftUI.
+
+## Screenshots
+
+(iPhone / iPad / macOS screenshots or GIFs)
+
+## Features
+
+- Connect to and browse a Suwayomi server
+- Reader experience plus core modules like Library / Updates / History
 
 ## Requirements
 
-- Xcode (latest stable recommended)
-- iOS target: follow the project’s current Xcode settings
-- A reachable Tachidesk/Suwayomi Server (local or LAN)
+- iOS 17+
+- Xcode 15+
+- Swift 5.9+
 
-## GraphQL (Apollo iOS + Codegen)
+## Installation
 
-This project uses **Apollo iOS** as the single GraphQL client, with codegen to generate type-safe queries and mutations.
+1. `git clone` this repository
+2. Open `Kazeyomi.xcodeproj` in Xcode (or `.xcworkspace` if the project migrates to a workspace)
+3. Select a target device and Run
 
-- Schema: `Kazeyomi/Shared/GraphQL/Schema/schema.graphqls`
-- Operations: `Kazeyomi/Shared/GraphQL/Operations/*.graphql`
-- Generated: `Kazeyomi/Shared/GraphQL/Generated/**`
-- Codegen config: `apollo-codegen-config.json`
+## Architecture
 
-### Regenerate code
+- SwiftUI
+- MVVM
+- async/await (Combine where it makes sense)
 
-The repo includes a local Apollo CLI binary under `GraphQLCodegen/.local-cli/`:
+## Dependencies
 
-```bash
-cd Kazeyomi
-GraphQLCodegen/.local-cli/apollo-ios-cli generate --path apollo-codegen-config.json --verbose
-```
+- Swift Package Manager
+- Apollo iOS (GraphQL client + codegen)
 
-Generated files are written to `Kazeyomi/Shared/GraphQL/Generated/`.
+## License
 
-## Project structure (simplified)
-
-- `Kazeyomi/App/`: app entry and global wiring
-- `Kazeyomi/Features/`: feature modules (Library/Updates/History/…)
-- `Kazeyomi/Shared/`: shared code (Components/Models/Networking/Persistence/Utilities)
-
-See `RULES.md` for the full conventions.
-
-## Commit message convention (Conventional Commits)
-
-We follow Conventional Commits from now on for easier history navigation and changelog generation:
-
-- `feat(scope): ...` new feature
-- `fix(scope): ...` bug fix
-- `docs: ...` documentation
-- `refactor(scope): ...` refactor (no behavior change)
-- `chore: ...` tooling/formatting/scripts/deps/CI
-
-Examples:
-
-- `feat(library): add manga detail page`
-- `fix(networking): resolve relative image URLs`
-- `docs: add README`
+MIT
