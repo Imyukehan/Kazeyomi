@@ -13,9 +13,8 @@ Kazeyomi is a Suwayomi client built with SwiftUI.
 
 ## Requirements
 
-- iOS 17+
-- Xcode 15+
-- Swift 5.9+
+- Minimum Swift 6.0
+- iOS 26 SDK (June 2025)
 
 ## Installation
 
