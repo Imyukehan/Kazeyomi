@@ -8,7 +8,7 @@ extension TachideskAPI {
     static let operationName: String = "AboutServer"
     static let operationDocument: ApolloAPI.OperationDocument = .init(
       definition: .init(
-        #"query AboutServer { aboutServer { __typename name version revision buildType } }"#
+        #"query AboutServer { aboutServer { __typename buildTime name version revision buildType github discord } }"#
       ))
 
     public init() {}
@@ -37,19 +37,25 @@ extension TachideskAPI {
         static var __parentType: any ApolloAPI.ParentType { TachideskAPI.Objects.AboutServerPayload }
         static var __selections: [ApolloAPI.Selection] { [
           .field("__typename", String.self),
+          .field("buildTime", TachideskAPI.LongString.self),
           .field("name", String.self),
           .field("version", String.self),
           .field("revision", String.self),
           .field("buildType", String.self),
+          .field("github", String.self),
+          .field("discord", String.self),
         ] }
         static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
           AboutServerQuery.Data.AboutServer.self
         ] }
 
+        var buildTime: TachideskAPI.LongString { __data["buildTime"] }
         var name: String { __data["name"] }
         var version: String { __data["version"] }
         var revision: String { __data["revision"] }
         var buildType: String { __data["buildType"] }
+        var github: String { __data["github"] }
+        var discord: String { __data["discord"] }
       }
     }
   }

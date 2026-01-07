@@ -1,8 +1,11 @@
 query AboutServer {
   aboutServer {
+    buildTime
     name
     version
     revision
     buildType
+    github
+    discord
   }
 }

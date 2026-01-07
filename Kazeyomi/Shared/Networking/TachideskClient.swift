@@ -2,10 +2,13 @@ import Apollo
 import Foundation
 
 struct AboutServerPayload: Hashable {
+    let buildTime: String
     let name: String
     let version: String
     let revision: String
     let buildType: String
+    let github: String
+    let discord: String
 }
 
 struct DownloadQueueItem: Hashable {
@@ -186,10 +189,13 @@ final class TachideskClient {
 
         let about = data.aboutServer
         return AboutServerPayload(
+            buildTime: about.buildTime,
             name: about.name,
             version: about.version,
             revision: about.revision,
-            buildType: about.buildType
+            buildType: about.buildType,
+            github: about.github,
+            discord: about.discord
         )
     }
 

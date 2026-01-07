@@ -9,6 +9,7 @@ struct AppRootView: View {
         case history
         case downloads
         case settings
+        case about
 
         var id: String { rawValue }
 
@@ -20,6 +21,7 @@ struct AppRootView: View {
             case .history: return "tab.history"
             case .downloads: return "tab.downloads"
             case .settings: return "tab.settings"
+            case .about: return "tab.about"
             }
         }
 
@@ -31,6 +33,7 @@ struct AppRootView: View {
             case .history: return "clock"
             case .downloads: return "arrow.down.circle"
             case .settings: return "gearshape"
+            case .about: return "info.circle"
             }
         }
     }
@@ -63,6 +66,8 @@ struct AppRootView: View {
                     DownloadsView()
                 case .settings:
                     SettingsView()
+                case .about:
+                    AboutView()
                 }
             }
         }
@@ -108,6 +113,13 @@ struct AppRootView: View {
             }
             .tabItem {
                 Label("tab.settings", systemImage: "gearshape")
+            }
+
+            NavigationStack {
+                AboutView()
+            }
+            .tabItem {
+                Label("tab.about", systemImage: "info.circle")
             }
         }
         #endif
