@@ -122,7 +122,7 @@ After code changes:
 
 ## iOS 26 SDK Integration
 
-**IMPORTANT**: The project now supports iOS 26 SDK (June 2025) while maintaining iOS 18 as the minimum deployment target. Use `#available` checks when adopting iOS 26+ APIs.
+**IMPORTANT**: The project now supports iOS 26 SDK (June 2025) while maintaining iOS 18 as the minimum deployment target. Use `#available` checks when adopting iOS 26+ APIs. Use swift-expert-skills when needed for info about swiftui design pattern and ios 26 SDK.
 
 ### Available iOS 26 SwiftUI APIs
 
